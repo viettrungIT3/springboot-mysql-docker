@@ -159,3 +159,16 @@ docker compose down -v && docker compose up -d --build
   - The Dockerfile retries Gradle steps and caches Gradle; re-run `docker compose up -d --build`.
 - Swagger not accessible
   - Ensure backend is healthy: `docker compose logs backend`. Open `http://localhost:${BACKEND_PORT}/swagger-ui.html`.
+
+
+
+
+-----
+
+## 30-Day Roadmap 
+
+### Day 1 — Makefile & Dev UX
+
+  * **Goal:** `make up`, `make down`, `make logs`, `make rebuild`.
+  * **Criteria:** Makefile works on macOS/Linux; README is updated.
+  * [README Day 1](docs/README_day1.md)

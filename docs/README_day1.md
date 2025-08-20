@@ -1,0 +1,15 @@
+## Makefile shortcuts
+- `make up`        - Start stack (detached)
+- `make down`      - Stop stack và remove orphans
+- `make restart`   - down + up
+- `make logs`      - flow logs of backend
+- `make logs-all`  - flow logs of all services
+- `make ps`        - view container status
+- `make rebuild`   - rebuild image backend (no-cache)
+- `make boot`      - run Spring Boot local (profile=dev)
+- `make test`      - run test Gradle
+- `make sh-app`    - open shell container backend
+- `make sh-db`     - open shell MySQL client inside DB container
+- `make db-logs`   - flow log MySQL
+- `make clean`     - down + xóa volumes & prune images(dangling)
+- `make swagger`   - in URL Swagger UI
