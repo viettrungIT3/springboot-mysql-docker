@@ -168,7 +168,11 @@ docker compose down -v && docker compose up -d --build
 ## 30-Day Roadmap 
 
 ### Day 1 — Makefile & Dev UX
-
   * **Goal:** `make up`, `make down`, `make logs`, `make rebuild`.
   * **Criteria:** Makefile works on macOS/Linux; README is updated.
   * [README Day 1](docs/README_day1.md)
+
+### Day 2 — Profiles & Isolated Configuration
+  * Goal: `application.yml` with `dev`, `test`, `prod` profiles; use environment overrides.
+  * Criteria: Run dev via Docker Compose; DB configuration comes from .env.
+  * [README Day 2](docs/README_day2.md)
