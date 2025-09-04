@@ -1,7 +1,9 @@
 package com.backend.backend.controller;
 
-import com.backend.backend.entity.Customer;
-import com.backend.backend.repository.CustomerRepository;
+import com.backend.backend.dto.CustomerDTO;
+import com.backend.backend.service.CustomerService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,41 +11,43 @@ import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/customers")
+@RequestMapping("/api/v1/customers")
 public class CustomerController {
-    private final CustomerRepository repository;
+    private final CustomerService customerService;
 
-    public CustomerController(CustomerRepository repository) {
-        this.repository = repository;
+    public CustomerController(CustomerService customerService) {
+        this.customerService = customerService;
     }
 
     @GetMapping
-    public List<Customer> list() { return repository.findAll(); }
+    public ResponseEntity<List<CustomerDTO>> list() {
+        List<CustomerDTO> customers = customerService.findAll();
+        return ResponseEntity.ok(customers);
+    }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Customer> get(@PathVariable Long id) {
-        return repository.findById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<CustomerDTO> get(@PathVariable Long id) {
+        CustomerDTO customer = customerService.findById(id);
+        return ResponseEntity.ok(customer);
     }
 
     @PostMapping
-    public ResponseEntity<Customer> create(@RequestBody Customer c) {
-        Customer saved = repository.save(c);
-        return ResponseEntity.created(URI.create("/api/customers/" + saved.getId())).body(saved);
+    public ResponseEntity<CustomerDTO> create(@Valid @RequestBody CustomerDTO dto) {
+        CustomerDTO savedCustomer = customerService.create(dto);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .location(URI.create("/api/v1/customers/" + savedCustomer.getId()))
+                .body(savedCustomer);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Customer> update(@PathVariable Long id, @RequestBody Customer c) {
-        return repository.findById(id).map(existing -> {
-            existing.setName(c.getName());
-            existing.setContactInfo(c.getContactInfo());
-            return ResponseEntity.ok(repository.save(existing));
-        }).orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<CustomerDTO> update(@PathVariable Long id, @Valid @RequestBody CustomerDTO dto) {
+        CustomerDTO updatedCustomer = customerService.update(id, dto);
+        return ResponseEntity.ok(updatedCustomer);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        if (!repository.existsById(id)) return ResponseEntity.notFound().build();
-        repository.deleteById(id);
+        customerService.delete(id);
         return ResponseEntity.noContent().build();
     }
 }
