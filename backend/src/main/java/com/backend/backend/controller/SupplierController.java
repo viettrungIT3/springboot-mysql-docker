@@ -1,7 +1,9 @@
 package com.backend.backend.controller;
 
-import com.backend.backend.entity.Supplier;
-import com.backend.backend.repository.SupplierRepository;
+import com.backend.backend.dto.SupplierDTO;
+import com.backend.backend.service.SupplierService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,41 +11,43 @@ import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/suppliers")
+@RequestMapping("/api/v1/suppliers")
 public class SupplierController {
-    private final SupplierRepository repository;
+    private final SupplierService supplierService;
 
-    public SupplierController(SupplierRepository repository) {
-        this.repository = repository;
+    public SupplierController(SupplierService supplierService) {
+        this.supplierService = supplierService;
     }
 
     @GetMapping
-    public List<Supplier> list() { return repository.findAll(); }
+    public ResponseEntity<List<SupplierDTO>> list() {
+        List<SupplierDTO> suppliers = supplierService.findAll();
+        return ResponseEntity.ok(suppliers);
+    }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Supplier> get(@PathVariable Long id) {
-        return repository.findById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<SupplierDTO> get(@PathVariable Long id) {
+        SupplierDTO supplier = supplierService.findById(id);
+        return ResponseEntity.ok(supplier);
     }
 
     @PostMapping
-    public ResponseEntity<Supplier> create(@RequestBody Supplier s) {
-        Supplier saved = repository.save(s);
-        return ResponseEntity.created(URI.create("/api/suppliers/" + saved.getId())).body(saved);
+    public ResponseEntity<SupplierDTO> create(@Valid @RequestBody SupplierDTO dto) {
+        SupplierDTO savedSupplier = supplierService.create(dto);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .location(URI.create("/api/v1/suppliers/" + savedSupplier.getId()))
+                .body(savedSupplier);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Supplier> update(@PathVariable Long id, @RequestBody Supplier s) {
-        return repository.findById(id).map(existing -> {
-            existing.setName(s.getName());
-            existing.setContactInfo(s.getContactInfo());
-            return ResponseEntity.ok(repository.save(existing));
-        }).orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<SupplierDTO> update(@PathVariable Long id, @Valid @RequestBody SupplierDTO dto) {
+        SupplierDTO updatedSupplier = supplierService.update(id, dto);
+        return ResponseEntity.ok(updatedSupplier);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        if (!repository.existsById(id)) return ResponseEntity.notFound().build();
-        repository.deleteById(id);
+        supplierService.delete(id);
         return ResponseEntity.noContent().build();
     }
 }
