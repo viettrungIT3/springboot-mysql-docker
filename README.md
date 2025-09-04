@@ -268,46 +268,61 @@ docker compose down -v && docker compose up -d --build
 ## 🗓️ Development Journey
 
 ### ✅ Day 1 — Makefile & Dev UX
-**Goal:** `make up`, `make down`, `make logs`, `make rebuild`.  
-**Criteria:** Makefile works on macOS/Linux; README is updated.  
-**📖 [README Day 1](docs/README_day1.md)**
+* **Goal:** `make up`, `make down`, `make logs`, `make rebuild`.  
+* **Criteria:** Makefile works on macOS/Linux; README is updated.  
+* **📖 [README Day 1](docs/README_day1.md)**
+* **[Git changelog](https://github.com/viettrungIT3/springboot-mysql-docker/pull/1/files)**
 
 ### ✅ Day 2 — Profiles & Isolated Configuration  
-**Goal:** `application.yml` with `dev`, `test`, `prod` profiles; use environment overrides.  
-**Criteria:** Run dev via Docker Compose; DB configuration comes from .env.  
-**📖 [README Day 2](docs/README_day2.md)**
+* **Goal:** `application.yml` with `dev`, `test`, `prod` profiles; use environment overrides.  
+* **Criteria:** Run dev via Docker Compose; DB configuration comes from .env.  
+* **📖 [README Day 2](docs/README_day2.md)**
+* **[Git changelog](https://github.com/viettrungIT3/springboot-mysql-docker/pull/2/files)**
 
 ### ✅ Day 3 — Validation & Global Error Handling
-**Goal:** Bean Validation (JSR-380) for incoming DTOs; @ControllerAdvice + standardized JSON errors.  
-**Criteria:** 400 response with clear field errors.  
-**📖 [README Day 3](docs/README_day3.md)**
+* **Goal:** Bean Validation (JSR-380) for incoming DTOs; @ControllerAdvice + standardized JSON errors.  
+* **Criteria:** 400 response with clear field errors.  
+* **📖 [README Day 3](docs/README_day3.md)**
+* **[Git changelog](https://github.com/viettrungIT3/springboot-mysql-docker/pull/3/files)**
 
 ### ✅ Day 4 — DTO + MapStruct
-**Goal:** Tách DTO khỏi entity, dùng MapStruct mapper.  
-**Criteria:** Controller chỉ nhận/trả DTO; mapper có test đơn giản; partial update support.  
-**🎯 COMPLETED:** Enterprise-grade architecture với 21 DTOs, 7 MapStruct mappers, business logic integration  
-**📖 [README Day 4](docs/README_day4.md)**
+* **Goal:** Separate DTOs from entities, use MapStruct mappers.
+* **Criteria:**  Controller only receives/returns DTOs; mappers have simple tests.
+* **🎯 COMPLETED:** Enterprise-grade architecture with 21 DTOs, 7 MapStruct mappers, business logic integration  
+* **📖 [README Day 4](docs/README_day4.md)**
+* **[Git changelog](https://github.com/viettrungIT3/springboot-mysql-docker/pull/4/files)**
+
+### ✅ Day 5 — Pagination, Sort, Filter
+* **Goal:** Standardize list endpoints: `?page=…&size=…&sort=…&search=…`
+* **Criteria:** Swagger displays correct parameters; returns `Page` metadata.
+* **🎯 COMPLETED:** Standardized pagination with PageResponse<T>, PageMapper utility, search functionality and comprehensive Swagger documentation
+* **📖 [README Day 5](docs/README_day5.md)**
+* **[Git changelog](https://github.com/viettrungIT3/springboot-mysql-docker/pull/5/files)**
 
 ---
 
 ## 🏆 **Current Architecture Status**
 
 ### **✅ Completed Features:**
-- 🔧 **Development UX**: Comprehensive Makefile với 20+ commands
-- ⚙️ **Configuration Management**: Multi-profile application.yml với environment isolation  
-- 🛡️ **Input Validation**: Bean Validation với global error handling
+- 🔧 **Development UX**: Comprehensive Makefile with 20+ commands
+- ⚙️ **Configuration Management**: Multi-profile application.yml with environment isolation  
+- 🛡️ **Input Validation**: Bean Validation with global error handling
 - 🏗️ **DTO Architecture**: Complete separation of API contracts from domain entities
 - 🚀 **MapStruct Integration**: High-performance compile-time mapping
 - 💼 **Business Logic**: Inventory management, order processing, automatic calculations
 - 🔐 **Security**: BCrypt password encryption, sensitive data protection
-- 📊 **APIs**: 50+ RESTful endpoints với pagination và advanced operations
+- 📊 **APIs**: 50+ RESTful endpoints with pagination, sorting, filtering and search
+- 📄 **Pagination**: PageResponse<T> standard with metadata, PageMapper utility
+- 📖 **Documentation**: Swagger/OpenAPI with detailed parameter descriptions
 
 ### **📈 Technical Metrics:**
-- **7 Domain Entities** với Lombok integration
-- **21 DTOs** thiết kế theo use-case patterns
-- **7 MapStruct Mappers** với relationship handling
-- **14 Controllers** với consistent RESTful design
-- **Zero Manual Mapping** - Tất cả automated với type safety
+- **7 Domain Entities** with Lombok integration
+- **21 DTOs** designed with use-case patterns
+- **7 MapStruct Mappers** with relationship handling
+- **1 PageMapper Utility** for pagination standardization
+- **14 Controllers** with consistent RESTful design and Swagger docs
+- **Zero Manual Mapping** - All automated with type safety
+- **Unified Pagination** - All list endpoints use PageResponse<T>
 
-**🌟 Ready for production deployment với enterprise-grade patterns!**
+**🌟 Ready for production deployment with enterprise-grade patterns!**
 

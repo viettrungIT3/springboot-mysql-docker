@@ -8,6 +8,7 @@ import com.backend.backend.entity.Product;
 import com.backend.backend.exception.ResourceNotFoundException;
 import com.backend.backend.mapper.ProductMapper;
 import com.backend.backend.repository.ProductRepository;
+import com.backend.backend.util.PageMapper;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,20 +57,30 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public PageResponse<ProductResponse> list(int page, int size, String sort) {
-        Sort s = (sort == null || sort.isBlank()) ? Sort.by("id").descending() : Sort.by(sort);
-        Pageable pageable = PageRequest.of(page, size, s);
-        Page<Product> result = productRepository.findAll(pageable);
+    public PageResponse<ProductResponse> list(int page, int size, String sort, String search) {
+        Sort s = (sort == null || sort.isBlank())
+                ? Sort.by("id").descending()
+                : Sort.by(sort.split(",")[0])
+                        .ascending();
 
-        return PageResponse.<ProductResponse>builder()
-                .items(result.getContent().stream().map(productMapper::toResponse).toList())
-                .page(result.getNumber())
-                .size(result.getSize())
-                .totalElements(result.getTotalElements())
-                .totalPages(result.getTotalPages())
-                .first(result.isFirst())
-                .last(result.isLast())
-                .build();
+        // Xử lý sort direction nếu có
+        if (sort != null && !sort.isBlank() && sort.contains(",")) {
+            String[] sortParts = sort.split(",");
+            if (sortParts.length > 1 && "desc".equalsIgnoreCase(sortParts[1])) {
+                s = Sort.by(sortParts[0]).descending();
+            }
+        }
+
+        Pageable pageable = PageRequest.of(page, size, s);
+
+        Page<Product> result;
+        if (search != null && !search.isBlank()) {
+            result = productRepository.findByNameContainingIgnoreCase(search, pageable);
+        } else {
+            result = productRepository.findAll(pageable);
+        }
+
+        return PageMapper.toPageResponse(result, productMapper::toResponse);
     }
 
     @Transactional

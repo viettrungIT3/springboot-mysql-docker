@@ -12,6 +12,7 @@ import com.backend.backend.mapper.OrderItemMapper;
 import com.backend.backend.repository.OrderItemRepository;
 import com.backend.backend.repository.OrderRepository;
 import com.backend.backend.repository.ProductRepository;
+import com.backend.backend.util.PageMapper;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -146,15 +147,7 @@ public class OrderItemService {
         Pageable pageable = PageRequest.of(page, size, s);
         Page<OrderItem> result = orderItemRepository.findAll(pageable);
 
-        return PageResponse.<OrderItemResponse>builder()
-                .items(result.getContent().stream().map(orderItemMapper::toResponse).toList())
-                .page(result.getNumber())
-                .size(result.getSize())
-                .totalElements(result.getTotalElements())
-                .totalPages(result.getTotalPages())
-                .first(result.isFirst())
-                .last(result.isLast())
-                .build();
+        return PageMapper.toPageResponse(result, orderItemMapper::toResponse);
     }
 
     @Transactional
