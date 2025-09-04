@@ -1,48 +1,53 @@
 package com.backend.backend.controller;
 
-import com.backend.backend.dto.SupplierDTO;
+import com.backend.backend.dto.common.PageResponse;
+import com.backend.backend.dto.supplier.SupplierCreateRequest;
+import com.backend.backend.dto.supplier.SupplierResponse;
+import com.backend.backend.dto.supplier.SupplierUpdateRequest;
 import com.backend.backend.service.SupplierService;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/suppliers")
 public class SupplierController {
+
     private final SupplierService supplierService;
 
     public SupplierController(SupplierService supplierService) {
         this.supplierService = supplierService;
     }
 
-    @GetMapping
-    public ResponseEntity<List<SupplierDTO>> list() {
-        List<SupplierDTO> suppliers = supplierService.findAll();
-        return ResponseEntity.ok(suppliers);
+    @PostMapping
+    public ResponseEntity<SupplierResponse> create(@Valid @RequestBody SupplierCreateRequest request) {
+        return ResponseEntity.ok(supplierService.create(request));
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<SupplierResponse> update(@PathVariable Long id,
+            @Valid @RequestBody SupplierUpdateRequest request) {
+        return ResponseEntity.ok(supplierService.update(id, request));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<SupplierDTO> get(@PathVariable Long id) {
-        SupplierDTO supplier = supplierService.findById(id);
-        return ResponseEntity.ok(supplier);
+    public ResponseEntity<SupplierResponse> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(supplierService.getById(id));
     }
 
-    @PostMapping
-    public ResponseEntity<SupplierDTO> create(@Valid @RequestBody SupplierDTO dto) {
-        SupplierDTO savedSupplier = supplierService.create(dto);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .location(URI.create("/api/v1/suppliers/" + savedSupplier.getId()))
-                .body(savedSupplier);
+    @GetMapping
+    public ResponseEntity<List<SupplierResponse>> list() {
+        return ResponseEntity.ok(supplierService.findAll());
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<SupplierDTO> update(@PathVariable Long id, @Valid @RequestBody SupplierDTO dto) {
-        SupplierDTO updatedSupplier = supplierService.update(id, dto);
-        return ResponseEntity.ok(updatedSupplier);
+    @GetMapping("/page")
+    public ResponseEntity<PageResponse<SupplierResponse>> listWithPagination(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String sort) {
+        return ResponseEntity.ok(supplierService.list(page, size, sort));
     }
 
     @DeleteMapping("/{id}")
@@ -51,4 +56,3 @@ public class SupplierController {
         return ResponseEntity.noContent().build();
     }
 }
-

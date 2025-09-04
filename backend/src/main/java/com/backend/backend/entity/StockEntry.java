@@ -1,10 +1,13 @@
 package com.backend.backend.entity;
 
 import jakarta.persistence.*;
+import lombok.*;
 import java.time.OffsetDateTime;
 
 @Entity
 @Table(name = "stock_entries")
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor @Builder
 public class StockEntry {
 
     @Id
@@ -24,20 +27,5 @@ public class StockEntry {
 
     @Column(name = "entry_date")
     private OffsetDateTime entryDate;
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public Product getProduct() { return product; }
-    public void setProduct(Product product) { this.product = product; }
-
-    public Supplier getSupplier() { return supplier; }
-    public void setSupplier(Supplier supplier) { this.supplier = supplier; }
-
-    public Integer getQuantity() { return quantity; }
-    public void setQuantity(Integer quantity) { this.quantity = quantity; }
-
-    public OffsetDateTime getEntryDate() { return entryDate; }
-    public void setEntryDate(OffsetDateTime entryDate) { this.entryDate = entryDate; }
 }
 

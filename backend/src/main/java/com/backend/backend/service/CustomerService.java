@@ -1,71 +1,82 @@
 package com.backend.backend.service;
 
-import com.backend.backend.dto.CustomerDTO;
+import com.backend.backend.dto.common.PageResponse;
+import com.backend.backend.dto.customer.CustomerCreateRequest;
+import com.backend.backend.dto.customer.CustomerResponse;
+import com.backend.backend.dto.customer.CustomerUpdateRequest;
 import com.backend.backend.entity.Customer;
 import com.backend.backend.exception.ResourceNotFoundException;
+import com.backend.backend.mapper.CustomerMapper;
 import com.backend.backend.repository.CustomerRepository;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class CustomerService {
 
     private final CustomerRepository customerRepository;
+    private final CustomerMapper customerMapper;
 
-    public CustomerService(CustomerRepository customerRepository) {
+    public CustomerService(CustomerRepository customerRepository, CustomerMapper customerMapper) {
         this.customerRepository = customerRepository;
+        this.customerMapper = customerMapper;
     }
 
-    public List<CustomerDTO> findAll() {
+    @Transactional
+    public CustomerResponse create(CustomerCreateRequest request) {
+        Customer entity = customerMapper.toEntity(request);
+        Customer saved = customerRepository.save(entity);
+        return customerMapper.toResponse(saved);
+    }
+
+    @Transactional
+    public CustomerResponse update(Long id, CustomerUpdateRequest request) {
+        Customer entity = customerRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy khách hàng với ID: " + id));
+        customerMapper.updateEntity(entity, request); // partial update
+        Customer saved = customerRepository.save(entity);
+        return customerMapper.toResponse(saved);
+    }
+
+    @Transactional(readOnly = true)
+    public CustomerResponse getById(Long id) {
+        Customer entity = customerRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy khách hàng với ID: " + id));
+        return customerMapper.toResponse(entity);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CustomerResponse> findAll() {
         return customerRepository.findAll().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+                .map(customerMapper::toResponse)
+                .toList();
     }
 
-    public CustomerDTO findById(Long id) {
-        Customer customer = customerRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy khách hàng với ID: " + id));
-        return convertToDTO(customer);
+    @Transactional(readOnly = true)
+    public PageResponse<CustomerResponse> list(int page, int size, String sort) {
+        Sort s = (sort == null || sort.isBlank()) ? Sort.by("id").descending() : Sort.by(sort);
+        Pageable pageable = PageRequest.of(page, size, s);
+        Page<Customer> result = customerRepository.findAll(pageable);
+
+        return PageResponse.<CustomerResponse>builder()
+                .items(result.getContent().stream().map(customerMapper::toResponse).toList())
+                .page(result.getNumber())
+                .size(result.getSize())
+                .totalElements(result.getTotalElements())
+                .totalPages(result.getTotalPages())
+                .first(result.isFirst())
+                .last(result.isLast())
+                .build();
     }
 
-    public CustomerDTO create(CustomerDTO dto) {
-        Customer customer = convertToEntity(dto);
-        Customer savedCustomer = customerRepository.save(customer);
-        return convertToDTO(savedCustomer);
-    }
-
-    public CustomerDTO update(Long id, CustomerDTO dto) {
-        Customer existing = customerRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy khách hàng với ID: " + id));
-
-        existing.setName(dto.getName());
-        existing.setContactInfo(dto.getContactInfo());
-
-        Customer savedCustomer = customerRepository.save(existing);
-        return convertToDTO(savedCustomer);
-    }
-
+    @Transactional
     public void delete(Long id) {
         if (!customerRepository.existsById(id)) {
             throw new ResourceNotFoundException("Không tìm thấy khách hàng với ID: " + id);
         }
         customerRepository.deleteById(id);
-    }
-
-    private CustomerDTO convertToDTO(Customer customer) {
-        CustomerDTO dto = new CustomerDTO();
-        dto.setId(customer.getId());
-        dto.setName(customer.getName());
-        dto.setContactInfo(customer.getContactInfo());
-        return dto;
-    }
-
-    private Customer convertToEntity(CustomerDTO dto) {
-        Customer customer = new Customer();
-        customer.setName(dto.getName());
-        customer.setContactInfo(dto.getContactInfo());
-        return customer;
     }
 }

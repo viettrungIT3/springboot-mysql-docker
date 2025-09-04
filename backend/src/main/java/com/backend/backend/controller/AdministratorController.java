@@ -1,52 +1,58 @@
 package com.backend.backend.controller;
 
-import com.backend.backend.entity.Administrator;
-import com.backend.backend.repository.AdministratorRepository;
+import com.backend.backend.dto.administrator.AdministratorCreateRequest;
+import com.backend.backend.dto.administrator.AdministratorResponse;
+import com.backend.backend.dto.administrator.AdministratorUpdateRequest;
+import com.backend.backend.dto.common.PageResponse;
+import com.backend.backend.service.AdministratorService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/administrators")
+@RequestMapping("/api/v1/administrators")
 public class AdministratorController {
-    private final AdministratorRepository repository;
 
-    public AdministratorController(AdministratorRepository repository) {
-        this.repository = repository;
-    }
+    private final AdministratorService administratorService;
 
-    @GetMapping
-    public List<Administrator> list() { return repository.findAll(); }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<Administrator> get(@PathVariable Long id) {
-        return repository.findById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    public AdministratorController(AdministratorService administratorService) {
+        this.administratorService = administratorService;
     }
 
     @PostMapping
-    public ResponseEntity<Administrator> create(@RequestBody Administrator a) {
-        Administrator saved = repository.save(a);
-        return ResponseEntity.created(URI.create("/api/administrators/" + saved.getId())).body(saved);
+    public ResponseEntity<AdministratorResponse> create(@Valid @RequestBody AdministratorCreateRequest request) {
+        return ResponseEntity.ok(administratorService.create(request));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Administrator> update(@PathVariable Long id, @RequestBody Administrator a) {
-        return repository.findById(id).map(existing -> {
-            existing.setUsername(a.getUsername());
-            existing.setPassword(a.getPassword());
-            existing.setEmail(a.getEmail());
-            existing.setFullName(a.getFullName());
-            return ResponseEntity.ok(repository.save(existing));
-        }).orElse(ResponseEntity.notFound().build());
+    @PatchMapping("/{id}")
+    public ResponseEntity<AdministratorResponse> update(@PathVariable Long id,
+            @Valid @RequestBody AdministratorUpdateRequest request) {
+        return ResponseEntity.ok(administratorService.update(id, request));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<AdministratorResponse> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(administratorService.getById(id));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<AdministratorResponse>> list() {
+        return ResponseEntity.ok(administratorService.findAll());
+    }
+
+    @GetMapping("/page")
+    public ResponseEntity<PageResponse<AdministratorResponse>> listWithPagination(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String sort) {
+        return ResponseEntity.ok(administratorService.list(page, size, sort));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        if (!repository.existsById(id)) return ResponseEntity.notFound().build();
-        repository.deleteById(id);
+        administratorService.delete(id);
         return ResponseEntity.noContent().build();
     }
 }
-

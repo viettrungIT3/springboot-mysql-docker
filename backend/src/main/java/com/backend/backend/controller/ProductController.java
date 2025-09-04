@@ -1,48 +1,52 @@
 package com.backend.backend.controller;
 
-import com.backend.backend.dto.ProductDTO;
+import com.backend.backend.dto.common.PageResponse;
+import com.backend.backend.dto.product.ProductCreateRequest;
+import com.backend.backend.dto.product.ProductResponse;
+import com.backend.backend.dto.product.ProductUpdateRequest;
 import com.backend.backend.service.ProductService;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/products")
+@RequiredArgsConstructor
 public class ProductController {
+
     private final ProductService productService;
 
-    public ProductController(ProductService productService) {
-        this.productService = productService;
+    @PostMapping
+    public ResponseEntity<ProductResponse> create(@Valid @RequestBody ProductCreateRequest request) {
+        return ResponseEntity.ok(productService.create(request));
     }
 
-    @GetMapping
-    public ResponseEntity<List<ProductDTO>> list() {
-        List<ProductDTO> products = productService.findAll();
-        return ResponseEntity.ok(products);
+    @PatchMapping("/{id}")
+    public ResponseEntity<ProductResponse> update(@PathVariable Long id,
+                                                  @Valid @RequestBody ProductUpdateRequest request) {
+        return ResponseEntity.ok(productService.update(id, request));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProductDTO> get(@PathVariable Long id) {
-        ProductDTO product = productService.findById(id);
-        return ResponseEntity.ok(product);
+    public ResponseEntity<ProductResponse> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(productService.getById(id));
     }
 
-    @PostMapping
-    public ResponseEntity<ProductDTO> create(@Valid @RequestBody ProductDTO dto) {
-        ProductDTO savedProduct = productService.create(dto);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .location(URI.create("/api/v1/products/" + savedProduct.getId()))
-                .body(savedProduct);
+    @GetMapping
+    public ResponseEntity<List<ProductResponse>> list() {
+        return ResponseEntity.ok(productService.findAll());
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ProductDTO> update(@PathVariable Long id, @Valid @RequestBody ProductDTO dto) {
-        ProductDTO updatedProduct = productService.update(id, dto);
-        return ResponseEntity.ok(updatedProduct);
+    @GetMapping("/page")
+    public ResponseEntity<PageResponse<ProductResponse>> listWithPagination(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String sort
+    ) {
+        return ResponseEntity.ok(productService.list(page, size, sort));
     }
 
     @DeleteMapping("/{id}")

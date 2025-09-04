@@ -3,6 +3,7 @@ package com.backend.backend.entity;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import lombok.*;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -11,6 +12,8 @@ import java.util.List;
 @Entity
 @Table(name = "orders")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor @Builder
 public class Order {
 
     @Id
@@ -29,21 +32,7 @@ public class Order {
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
+    @Builder.Default
     private List<OrderItem> items = new ArrayList<>();
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public Customer getCustomer() { return customer; }
-    public void setCustomer(Customer customer) { this.customer = customer; }
-
-    public OffsetDateTime getOrderDate() { return orderDate; }
-    public void setOrderDate(OffsetDateTime orderDate) { this.orderDate = orderDate; }
-
-    public BigDecimal getTotalAmount() { return totalAmount; }
-    public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }
-
-    public List<OrderItem> getItems() { return items; }
-    public void setItems(List<OrderItem> items) { this.items = items; }
 }
 
