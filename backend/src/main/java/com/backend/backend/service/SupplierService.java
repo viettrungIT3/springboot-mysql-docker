@@ -8,6 +8,7 @@ import com.backend.backend.entity.Supplier;
 import com.backend.backend.exception.ResourceNotFoundException;
 import com.backend.backend.mapper.SupplierMapper;
 import com.backend.backend.repository.SupplierRepository;
+import com.backend.backend.util.PageMapper;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -61,15 +62,7 @@ public class SupplierService {
         Pageable pageable = PageRequest.of(page, size, s);
         Page<Supplier> result = supplierRepository.findAll(pageable);
 
-        return PageResponse.<SupplierResponse>builder()
-                .items(result.getContent().stream().map(supplierMapper::toResponse).toList())
-                .page(result.getNumber())
-                .size(result.getSize())
-                .totalElements(result.getTotalElements())
-                .totalPages(result.getTotalPages())
-                .first(result.isFirst())
-                .last(result.isLast())
-                .build();
+        return PageMapper.toPageResponse(result, supplierMapper::toResponse);
     }
 
     @Transactional

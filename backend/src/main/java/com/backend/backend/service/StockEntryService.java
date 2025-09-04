@@ -11,6 +11,7 @@ import com.backend.backend.mapper.StockEntryMapper;
 import com.backend.backend.repository.ProductRepository;
 import com.backend.backend.repository.StockEntryRepository;
 import com.backend.backend.repository.SupplierRepository;
+import com.backend.backend.util.PageMapper;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,9 +28,9 @@ public class StockEntryService {
     private final StockEntryMapper stockEntryMapper;
 
     public StockEntryService(StockEntryRepository stockEntryRepository,
-                            ProductRepository productRepository,
-                            SupplierRepository supplierRepository,
-                            StockEntryMapper stockEntryMapper) {
+            ProductRepository productRepository,
+            SupplierRepository supplierRepository,
+            StockEntryMapper stockEntryMapper) {
         this.stockEntryRepository = stockEntryRepository;
         this.productRepository = productRepository;
         this.supplierRepository = supplierRepository;
@@ -40,14 +41,16 @@ public class StockEntryService {
     public StockEntryResponse create(StockEntryCreateRequest request) {
         // Validate product exists
         Product product = productRepository.findById(request.getProductId())
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + request.getProductId()));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Không tìm thấy sản phẩm với ID: " + request.getProductId()));
 
         // Validate supplier exists
         // Supplier supplier = supplierRepository.findById(request.getSupplierId())
-        //         .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy nhà cung cấp với ID: " + request.getSupplierId()));
+        // .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy nhà cung cấp
+        // với ID: " + request.getSupplierId()));
 
         StockEntry entity = stockEntryMapper.toEntity(request);
-        
+
         // Set entry date if not provided
         if (entity.getEntryDate() == null) {
             entity.setEntryDate(OffsetDateTime.now());
@@ -74,19 +77,21 @@ public class StockEntryService {
         // Validate new product if being changed
         if (request.getProductId() != null && !request.getProductId().equals(entity.getProduct().getId())) {
             Product newProduct = productRepository.findById(request.getProductId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + request.getProductId()));
-            
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Không tìm thấy sản phẩm với ID: " + request.getProductId()));
+
             // Revert old product stock
             product.setQuantityInStock(product.getQuantityInStock() - oldQuantity);
             productRepository.save(product);
-            
+
             product = newProduct;
         }
 
         // Validate new supplier if being changed
         if (request.getSupplierId() != null && !request.getSupplierId().equals(entity.getSupplier().getId())) {
             supplierRepository.findById(request.getSupplierId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy nhà cung cấp với ID: " + request.getSupplierId()));
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Không tìm thấy nhà cung cấp với ID: " + request.getSupplierId()));
         }
 
         stockEntryMapper.updateEntity(entity, request); // partial update
@@ -128,22 +133,14 @@ public class StockEntryService {
         Pageable pageable = PageRequest.of(page, size, s);
         Page<StockEntry> result = stockEntryRepository.findAll(pageable);
 
-        return PageResponse.<StockEntryResponse>builder()
-                .items(result.getContent().stream().map(stockEntryMapper::toResponse).toList())
-                .page(result.getNumber())
-                .size(result.getSize())
-                .totalElements(result.getTotalElements())
-                .totalPages(result.getTotalPages())
-                .first(result.isFirst())
-                .last(result.isLast())
-                .build();
+        return PageMapper.toPageResponse(result, stockEntryMapper::toResponse);
     }
 
     @Transactional
     public void delete(Long id) {
         StockEntry entity = stockEntryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiếu nhập kho với ID: " + id));
-        
+
         // Revert product stock
         Product product = entity.getProduct();
         product.setQuantityInStock(product.getQuantityInStock() - entity.getQuantity());

@@ -8,6 +8,7 @@ import com.backend.backend.entity.Administrator;
 import com.backend.backend.exception.ResourceNotFoundException;
 import com.backend.backend.mapper.AdministratorMapper;
 import com.backend.backend.repository.AdministratorRepository;
+import com.backend.backend.util.PageMapper;
 import org.springframework.data.domain.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -97,15 +98,7 @@ public class AdministratorService {
         Pageable pageable = PageRequest.of(page, size, s);
         Page<Administrator> result = administratorRepository.findAll(pageable);
 
-        return PageResponse.<AdministratorResponse>builder()
-                .items(result.getContent().stream().map(administratorMapper::toResponse).toList())
-                .page(result.getNumber())
-                .size(result.getSize())
-                .totalElements(result.getTotalElements())
-                .totalPages(result.getTotalPages())
-                .first(result.isFirst())
-                .last(result.isLast())
-                .build();
+        return PageMapper.toPageResponse(result, administratorMapper::toResponse);
     }
 
     @Transactional
