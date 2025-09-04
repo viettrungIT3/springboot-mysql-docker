@@ -1,48 +1,53 @@
 package com.backend.backend.controller;
 
-import com.backend.backend.dto.CustomerDTO;
+import com.backend.backend.dto.common.PageResponse;
+import com.backend.backend.dto.customer.CustomerCreateRequest;
+import com.backend.backend.dto.customer.CustomerResponse;
+import com.backend.backend.dto.customer.CustomerUpdateRequest;
 import com.backend.backend.service.CustomerService;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/customers")
 public class CustomerController {
+
     private final CustomerService customerService;
 
     public CustomerController(CustomerService customerService) {
         this.customerService = customerService;
     }
 
-    @GetMapping
-    public ResponseEntity<List<CustomerDTO>> list() {
-        List<CustomerDTO> customers = customerService.findAll();
-        return ResponseEntity.ok(customers);
+    @PostMapping
+    public ResponseEntity<CustomerResponse> create(@Valid @RequestBody CustomerCreateRequest request) {
+        return ResponseEntity.ok(customerService.create(request));
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<CustomerResponse> update(@PathVariable Long id,
+            @Valid @RequestBody CustomerUpdateRequest request) {
+        return ResponseEntity.ok(customerService.update(id, request));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CustomerDTO> get(@PathVariable Long id) {
-        CustomerDTO customer = customerService.findById(id);
-        return ResponseEntity.ok(customer);
+    public ResponseEntity<CustomerResponse> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(customerService.getById(id));
     }
 
-    @PostMapping
-    public ResponseEntity<CustomerDTO> create(@Valid @RequestBody CustomerDTO dto) {
-        CustomerDTO savedCustomer = customerService.create(dto);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .location(URI.create("/api/v1/customers/" + savedCustomer.getId()))
-                .body(savedCustomer);
+    @GetMapping
+    public ResponseEntity<List<CustomerResponse>> list() {
+        return ResponseEntity.ok(customerService.findAll());
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<CustomerDTO> update(@PathVariable Long id, @Valid @RequestBody CustomerDTO dto) {
-        CustomerDTO updatedCustomer = customerService.update(id, dto);
-        return ResponseEntity.ok(updatedCustomer);
+    @GetMapping("/page")
+    public ResponseEntity<PageResponse<CustomerResponse>> listWithPagination(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String sort) {
+        return ResponseEntity.ok(customerService.list(page, size, sort));
     }
 
     @DeleteMapping("/{id}")
@@ -51,4 +56,3 @@ public class CustomerController {
         return ResponseEntity.noContent().build();
     }
 }
-
