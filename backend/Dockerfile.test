@@ -1,0 +1,22 @@
+# Dockerfile for running unit tests
+FROM eclipse-temurin:17-jdk
+
+WORKDIR /app
+
+# Copy build files first (for better caching)
+COPY gradlew gradlew
+COPY gradle gradle
+COPY build.gradle settings.gradle ./
+
+# Make gradlew executable
+RUN chmod +x gradlew
+
+# Download dependencies (cached layer)
+RUN --mount=type=cache,target=/root/.gradle \
+    bash -lc 'for i in 1 2 3; do ./gradlew --no-daemon dependencies && break || (echo "Retry $i" && sleep 10); done'
+
+# Copy source code
+COPY src src
+
+# Default command to run tests with coverage
+CMD ["./gradlew", "--no-daemon", "test", "jacocoTestReport", "--no-build-cache", "--info"]

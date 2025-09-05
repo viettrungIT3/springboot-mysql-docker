@@ -10,6 +10,7 @@ import org.mapstruct.*;
 public interface AdministratorMapper {
 
     // Create: DTO -> Entity
+    @Mapping(target = "id", ignore = true)
     Administrator toEntity(AdministratorCreateRequest request);
 
     // Read: Entity -> Response (exclude password)
@@ -17,5 +18,6 @@ public interface AdministratorMapper {
 
     // Update (partial): chỉ set các field != null
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "id", ignore = true)
     void updateEntity(@MappingTarget Administrator entity, AdministratorUpdateRequest request);
 }

@@ -8,7 +8,7 @@ import com.backend.backend.entity.Product;
 import com.backend.backend.entity.Supplier;
 import org.mapstruct.*;
 
-@Mapper(componentModel = "spring", uses = {ProductMapper.class, SupplierMapper.class})
+@Mapper(componentModel = "spring")
 public interface StockEntryMapper {
 
     // Create: DTO -> Entity (cần custom mapping cho relationships)
@@ -24,6 +24,7 @@ public interface StockEntryMapper {
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "product", source = "productId", qualifiedByName = "productIdToProduct")
     @Mapping(target = "supplier", source = "supplierId", qualifiedByName = "supplierIdToSupplier")
+    @Mapping(target = "id", ignore = true)
     void updateEntity(@MappingTarget StockEntry entity, StockEntryUpdateRequest request);
 
     // Helper methods để map IDs to entities

@@ -23,7 +23,7 @@ help: ## 📚 Hiển thị danh sách lệnh hữu ích
 	@echo "\n🔍 MONITORING & DEBUG:"
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / && /logs|ps|health|sh-/ {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 	@echo "\n🔨 BUILD & TEST:"
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / && /rebuild|boot|test|clean/ {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / && /rebuild|boot|test|clean|unit-/ {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 	@echo "\n📖 DOCUMENTATION & API:"
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / && /swagger|db-/ {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 	@echo "\n🎯 QUICK START:"
@@ -233,4 +233,74 @@ dev-status: ## 📊 Complete development environment status
 	@echo "\n⚡ Quick Actions:"
 	@echo "  make dev-start     → Start environment"
 	@echo "  make test-api      → Test API endpoints"
+	@echo "  make unit-test     → Run unit tests with coverage"
 	@echo "  make swagger       → Open Swagger UI"
+
+# ==== Day 7 - Unit Testing Commands ====
+
+.PHONY: unit-test
+unit-test: ## 🧪 Run unit tests with JaCoCo coverage report
+	@echo "🧪 Running unit tests with coverage..."
+	@mkdir -p backend/build/reports/jacoco/test/html
+	$(DC) --profile test build test-runner
+	$(DC) --profile test run --rm test-runner
+	@echo "\n✅ Unit tests completed!"
+	@echo "📊 Coverage report: backend/build/reports/jacoco/test/html/index.html"
+
+.PHONY: unit-test-watch
+unit-test-watch: ## 👁️ Run unit tests in watch mode (re-run on file changes)
+	@echo "👁️ Starting unit tests in watch mode..."
+	@echo "⚠️  This will re-run tests when source files change (Ctrl+C to stop)"
+	$(DC) --profile test run --rm test-runner ./gradlew --no-daemon test --continuous
+
+.PHONY: unit-test-single
+unit-test-single: ## 🎯 Run single test class (usage: make unit-test-single CLASS=ProductServiceTest)
+	@if [ -z "$(CLASS)" ]; then \
+		echo "❌ Usage: make unit-test-single CLASS=ProductServiceTest"; \
+		exit 1; \
+	fi
+	@echo "🎯 Running single test class: $(CLASS)..."
+	$(DC) --profile test run --rm test-runner ./gradlew --no-daemon test --tests "*$(CLASS)*" --info
+
+.PHONY: unit-test-clean
+unit-test-clean: ## 🧹 Clean test reports and build artifacts
+	@echo "🧹 Cleaning test artifacts..."
+	@rm -rf backend/build/reports/tests/
+	@rm -rf backend/build/reports/jacoco/
+	@rm -rf backend/build/test-results/
+	@echo "✅ Test artifacts cleaned!"
+
+.PHONY: unit-coverage
+unit-coverage: ## 📊 Generate and open coverage report
+	@echo "📊 Generating coverage report..."
+	$(DC) --profile test run --rm test-runner ./gradlew --no-daemon jacocoTestReport
+	@echo "📂 Opening coverage report..."
+	@if [ -f backend/build/reports/jacoco/test/html/index.html ]; then \
+		echo "✅ Coverage report: backend/build/reports/jacoco/test/html/index.html"; \
+		command -v open >/dev/null 2>&1 && open backend/build/reports/jacoco/test/html/index.html || \
+		command -v xdg-open >/dev/null 2>&1 && xdg-open backend/build/reports/jacoco/test/html/index.html || \
+		echo "📖 Please open: backend/build/reports/jacoco/test/html/index.html"; \
+	else \
+		echo "❌ Coverage report not found. Run 'make unit-test' first."; \
+	fi
+
+.PHONY: unit-test-logs
+unit-test-logs: ## 📄 Show detailed test logs
+	@echo "📄 Recent test logs..."
+	@if [ -d backend/build/reports/tests/test ]; then \
+		find backend/build/reports/tests/test -name "*.html" -exec echo "📂 {}" \; -exec cat {} \; | head -50; \
+	else \
+		echo "❌ No test logs found. Run 'make unit-test' first."; \
+	fi
+
+.PHONY: test-all
+test-all: ## 🚀 Run all types of tests (unit + API validation)
+	@echo "🚀 Running comprehensive test suite..."
+	@echo "\n1️⃣ Running unit tests..."
+	$(MAKE) unit-test
+	@echo "\n2️⃣ Starting backend for API tests..."
+	$(MAKE) dev-start
+	@sleep 10
+	@echo "\n3️⃣ Running API validation tests..."
+	$(MAKE) test-api
+	@echo "\n✅ All tests completed successfully!"

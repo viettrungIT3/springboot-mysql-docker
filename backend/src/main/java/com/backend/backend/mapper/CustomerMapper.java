@@ -10,6 +10,7 @@ import org.mapstruct.*;
 public interface CustomerMapper {
 
     // Create: DTO -> Entity
+    @Mapping(target = "id", ignore = true)
     Customer toEntity(CustomerCreateRequest request);
 
     // Read: Entity -> Response
@@ -17,5 +18,6 @@ public interface CustomerMapper {
 
     // Update (partial): chỉ set các field != null
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "id", ignore = true)
     void updateEntity(@MappingTarget Customer entity, CustomerUpdateRequest request);
 }

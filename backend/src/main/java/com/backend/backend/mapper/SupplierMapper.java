@@ -10,6 +10,7 @@ import org.mapstruct.*;
 public interface SupplierMapper {
 
     // Create: DTO -> Entity
+    @Mapping(target = "id", ignore = true)
     Supplier toEntity(SupplierCreateRequest request);
 
     // Read: Entity -> Response
@@ -17,5 +18,6 @@ public interface SupplierMapper {
 
     // Update (partial): chỉ set các field != null
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "id", ignore = true)
     void updateEntity(@MappingTarget Supplier entity, SupplierUpdateRequest request);
 }

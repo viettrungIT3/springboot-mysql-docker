@@ -10,7 +10,7 @@ import org.mapstruct.*;
 
 import java.math.BigDecimal;
 
-@Mapper(componentModel = "spring", uses = {ProductMapper.class})
+@Mapper(componentModel = "spring")
 public interface OrderItemMapper {
 
     // Create: DTO -> Entity

@@ -6,7 +6,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -32,7 +31,6 @@ public class Order {
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
-    @Builder.Default
-    private List<OrderItem> items = new ArrayList<>();
+    private List<OrderItem> items;
 }
 
