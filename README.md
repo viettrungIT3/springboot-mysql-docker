@@ -299,6 +299,13 @@ docker compose down -v && docker compose up -d --build
 * **📖 [README Day 5](docs/README_day5.md)**
 * **[Git changelog](https://github.com/viettrungIT3/springboot-mysql-docker/pull/5/files)**
 
+### ✅ Day 6 — Swagger Polish + OpenAPI
+* **Goal:** Title, description, contact, server URLs; tag endpoints.
+* **Criteria:** `/v3/api-docs` is valid; `swagger-ui.html` looks good, has examples.
+* **🎯 COMPLETED:** 
+* **📖 [README Day 6](docs/README_day6.md)**
+* **[Git changelog](https://github.com/viettrungIT3/springboot-mysql-docker/pull/6/files)**
+
 ---
 
 ## 🏆 **Current Architecture Status**
