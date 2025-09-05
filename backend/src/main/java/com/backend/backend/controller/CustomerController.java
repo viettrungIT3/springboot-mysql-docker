@@ -14,9 +14,9 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "Customers")
 @RestController
 @RequestMapping("/api/v1/customers")
-@Tag(name = "Customer", description = "API quản lý khách hàng")
 public class CustomerController {
 
     private final CustomerService customerService;

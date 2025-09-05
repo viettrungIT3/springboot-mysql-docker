@@ -5,12 +5,14 @@ import com.backend.backend.dto.supplier.SupplierCreateRequest;
 import com.backend.backend.dto.supplier.SupplierResponse;
 import com.backend.backend.dto.supplier.SupplierUpdateRequest;
 import com.backend.backend.service.SupplierService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "Suppliers")
 @RestController
 @RequestMapping("/api/v1/suppliers")
 public class SupplierController {

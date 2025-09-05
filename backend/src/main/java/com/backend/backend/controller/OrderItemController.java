@@ -5,12 +5,14 @@ import com.backend.backend.dto.orderitem.OrderItemCreateRequest;
 import com.backend.backend.dto.orderitem.OrderItemResponse;
 import com.backend.backend.dto.orderitem.OrderItemUpdateRequest;
 import com.backend.backend.service.OrderItemService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "Order Items")
 @RestController
 @RequestMapping("/api/v1/order-items")
 public class OrderItemController {
