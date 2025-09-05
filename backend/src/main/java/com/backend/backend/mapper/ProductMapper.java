@@ -10,6 +10,7 @@ import org.mapstruct.*;
 public interface ProductMapper {
 
     // Create: DTO -> Entity
+    @Mapping(target = "id", ignore = true)
     Product toEntity(ProductCreateRequest request);
 
     // Read: Entity -> Response
@@ -17,5 +18,6 @@ public interface ProductMapper {
 
     // Update (partial): chỉ set các field != null
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "id", ignore = true)
     void updateEntity(@MappingTarget Product entity, ProductUpdateRequest request);
 }

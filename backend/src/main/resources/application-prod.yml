@@ -6,5 +6,12 @@ spring:
   jpa:
     show-sql: false
 
+# Disable Swagger in production for security
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false
+
 server:
   port: 8080

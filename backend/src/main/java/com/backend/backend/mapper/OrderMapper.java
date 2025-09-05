@@ -7,7 +7,7 @@ import com.backend.backend.entity.Order;
 import com.backend.backend.entity.Customer;
 import org.mapstruct.*;
 
-@Mapper(componentModel = "spring", uses = {CustomerMapper.class, OrderItemMapper.class})
+@Mapper(componentModel = "spring")
 public interface OrderMapper {
 
     // Create: DTO -> Entity 
