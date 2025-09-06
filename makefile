@@ -304,3 +304,60 @@ test-all: ## 🚀 Run all types of tests (unit + API validation)
 	@echo "\n3️⃣ Running API validation tests..."
 	$(MAKE) test-api
 	@echo "\n✅ All tests completed successfully!"
+
+# ==== Day 8 - Integration Tests với Testcontainers ====
+
+.PHONY: integration-test
+integration-test: ## 🧪 Run integration tests với Testcontainers (MySQL)
+	@echo "🧪 Running integration tests với Testcontainers..."
+	@echo "🐳 Testcontainers sẽ tự động khởi động MySQL container"
+	cd backend && ./gradlew clean test --tests "*IT" --info
+	@echo "\n✅ Integration tests completed!"
+	@echo "📊 Coverage report: backend/build/reports/jacoco/test/html/index.html"
+
+.PHONY: integration-test-watch
+integration-test-watch: ## 👁️ Run integration tests in watch mode
+	@echo "👁️ Starting integration tests in watch mode..."
+	@echo "⚠️  This will re-run tests when source files change (Ctrl+C to stop)"
+	cd backend && ./gradlew --no-daemon test --tests "*IT" --continuous
+
+.PHONY: integration-test-single
+integration-test-single: ## 🎯 Run single integration test (usage: make integration-test-single CLASS=ProductRepositoryIT)
+	@if [ -z "$(CLASS)" ]; then \
+		echo "❌ Usage: make integration-test-single CLASS=ProductRepositoryIT"; \
+		exit 1; \
+	fi
+	@echo "🎯 Running single integration test: $(CLASS)..."
+	cd backend && ./gradlew --no-daemon test --tests "*$(CLASS)*" --info
+
+.PHONY: test-containers
+test-containers: ## 🐳 Test Testcontainers setup (pull images, check connectivity)
+	@echo "🐳 Testing Testcontainers setup..."
+	@echo "📥 Pulling MySQL image (first run may take time)..."
+	docker pull mysql:8.0
+	@echo "✅ MySQL image ready"
+	@echo "🧪 Running quick integration test..."
+	cd backend && ./gradlew test --tests "*IntegrationTestBase*" --info
+	@echo "✅ Testcontainers setup verified!"
+
+.PHONY: test-no-db
+test-no-db: ## 🚀 Run tests without local MySQL (using Testcontainers only)
+	@echo "🚀 Running tests without local MySQL dependency..."
+	@echo "🐳 Using Testcontainers for database..."
+	cd backend && ./gradlew clean test
+	@echo "\n✅ Tests completed without local MySQL!"
+	@echo "📊 Coverage report: backend/build/reports/jacoco/test/html/index.html"
+
+.PHONY: test-full-suite
+test-full-suite: ## 🎯 Run complete test suite (unit + integration + API)
+	@echo "🎯 Running complete test suite..."
+	@echo "\n1️⃣ Running unit tests..."
+	$(MAKE) unit-test
+	@echo "\n2️⃣ Running integration tests với Testcontainers..."
+	$(MAKE) integration-test
+	@echo "\n3️⃣ Starting backend for API tests..."
+	$(MAKE) dev-start
+	@sleep 10
+	@echo "\n4️⃣ Running API validation tests..."
+	$(MAKE) test-api
+	@echo "\n✅ Complete test suite finished successfully!"

@@ -1,0 +1,12 @@
+spring:
+  jpa:
+    show-sql: false
+  # Database configuration sẽ được override bởi Testcontainers
+  # Không hardcode credentials ở đây
+logging:
+  level:
+    root: WARN
+    org.springframework.test: INFO
+    org.testcontainers: INFO
+    # Ẩn sensitive information trong logs
+    org.springframework.security: WARN
