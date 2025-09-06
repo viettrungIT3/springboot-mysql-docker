@@ -9,6 +9,7 @@ import com.backend.backend.exception.ResourceNotFoundException;
 import com.backend.backend.mapper.ProductMapper;
 import com.backend.backend.repository.ProductRepository;
 import com.backend.backend.util.PageMapper;
+import com.backend.backend.util.SlugUtil;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +30,7 @@ public class ProductService {
     @Transactional
     public ProductResponse create(ProductCreateRequest request) {
         Product entity = productMapper.toEntity(request);
+        entity.setSlug(generateUniqueSlug(request.getName()));
         Product saved = productRepository.save(entity);
         return productMapper.toResponse(saved);
     }
@@ -38,6 +40,12 @@ public class ProductService {
         Product entity = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + id));
         productMapper.updateEntity(entity, request); // partial update
+        
+        // Update slug if name is being updated
+        if (request.getName() != null && !request.getName().trim().isEmpty()) {
+            entity.setSlug(generateUniqueSlug(request.getName()));
+        }
+        
         Product saved = productRepository.save(entity);
         return productMapper.toResponse(saved);
     }
@@ -46,6 +54,13 @@ public class ProductService {
     public ProductResponse getById(Long id) {
         Product entity = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + id));
+        return productMapper.toResponse(entity);
+    }
+
+    @Transactional(readOnly = true)
+    public ProductResponse getBySlug(String slug) {
+        Product entity = productRepository.findBySlug(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với slug: " + slug));
         return productMapper.toResponse(entity);
     }
 
@@ -89,5 +104,21 @@ public class ProductService {
             throw new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + id);
         }
         productRepository.deleteById(id);
+    }
+
+    /**
+     * Generates a unique slug from the given name.
+     * If the base slug already exists, appends a counter to make it unique.
+     */
+    private String generateUniqueSlug(String name) {
+        String baseSlug = SlugUtil.toSlug(name);
+        String slug = baseSlug;
+        int counter = 1;
+        
+        while (productRepository.existsBySlug(slug)) {
+            slug = baseSlug + "-" + counter++;
+        }
+        
+        return slug;
     }
 }

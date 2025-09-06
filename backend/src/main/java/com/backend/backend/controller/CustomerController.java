@@ -41,6 +41,16 @@ public class CustomerController {
         return ResponseEntity.ok(customerService.getById(id));
     }
 
+    @Operation(summary = "Get customer by slug", description = "Lấy thông tin chi tiết của một khách hàng bằng slug (SEO-friendly)", responses = {
+            @ApiResponse(responseCode = "200", description = "Lấy thông tin thành công"),
+            @ApiResponse(responseCode = "404", description = "Không tìm thấy khách hàng")
+    })
+    @GetMapping("/slug/{slug}")
+    public ResponseEntity<CustomerResponse> getBySlug(
+            @Parameter(description = "Slug của khách hàng", example = "alice-smith") @PathVariable String slug) {
+        return ResponseEntity.ok(customerService.getBySlug(slug));
+    }
+
     @Operation(summary = "Danh sách khách hàng với pagination, sorting, và search")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Thành công")

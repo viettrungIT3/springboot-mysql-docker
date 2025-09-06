@@ -9,6 +9,7 @@ import com.backend.backend.exception.ResourceNotFoundException;
 import com.backend.backend.mapper.CustomerMapper;
 import com.backend.backend.repository.CustomerRepository;
 import com.backend.backend.util.PageMapper;
+import com.backend.backend.util.SlugUtil;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +30,7 @@ public class CustomerService {
     @Transactional
     public CustomerResponse create(CustomerCreateRequest request) {
         Customer entity = customerMapper.toEntity(request);
+        entity.setSlug(generateUniqueSlug(request.getName()));
         Customer saved = customerRepository.save(entity);
         return customerMapper.toResponse(saved);
     }
@@ -38,6 +40,12 @@ public class CustomerService {
         Customer entity = customerRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy khách hàng với ID: " + id));
         customerMapper.updateEntity(entity, request); // partial update
+        
+        // Update slug if name is being updated
+        if (request.getName() != null && !request.getName().trim().isEmpty()) {
+            entity.setSlug(generateUniqueSlug(request.getName()));
+        }
+        
         Customer saved = customerRepository.save(entity);
         return customerMapper.toResponse(saved);
     }
@@ -46,6 +54,13 @@ public class CustomerService {
     public CustomerResponse getById(Long id) {
         Customer entity = customerRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy khách hàng với ID: " + id));
+        return customerMapper.toResponse(entity);
+    }
+
+    @Transactional(readOnly = true)
+    public CustomerResponse getBySlug(String slug) {
+        Customer entity = customerRepository.findBySlug(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy khách hàng với slug: " + slug));
         return customerMapper.toResponse(entity);
     }
 
@@ -89,5 +104,21 @@ public class CustomerService {
             throw new ResourceNotFoundException("Không tìm thấy khách hàng với ID: " + id);
         }
         customerRepository.deleteById(id);
+    }
+
+    /**
+     * Generates a unique slug from the given name.
+     * If the base slug already exists, appends a counter to make it unique.
+     */
+    private String generateUniqueSlug(String name) {
+        String baseSlug = SlugUtil.toSlug(name);
+        String slug = baseSlug;
+        int counter = 1;
+        
+        while (customerRepository.existsBySlug(slug)) {
+            slug = baseSlug + "-" + counter++;
+        }
+        
+        return slug;
     }
 }

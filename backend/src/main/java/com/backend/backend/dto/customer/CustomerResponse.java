@@ -12,5 +12,6 @@ import lombok.NoArgsConstructor;
 public class CustomerResponse {
     private Long id;
     private String name;
+    private String slug;
     private String contactInfo;
 }
