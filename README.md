@@ -39,14 +39,14 @@ docker compose up -d --build
 ## Environment (.env)
 Edit `.env` to manage all configs (no code changes required):
 ```env
-# MySQL
+# Database configuration
 MYSQL_ROOT_PASSWORD=root
 MYSQL_DATABASE=appdb
 MYSQL_USER=appuser
 MYSQL_PASSWORD=apppass
 MYSQL_PORT=3306        # exposed port on host
 
-# Backend
+# Backend configuration
 BACKEND_PORT=8080      # exposed port on host
 
 # DB connection seen by backend inside Docker network
@@ -62,7 +62,11 @@ JPA_SHOW_SQL=true
 # SPRING_SECURITY_USER_PASSWORD=admin
 
 # Data Seeding (dev/test profiles only)
-SPRING_PROFILES_ACTIVE=dev
+# Choose one profile:
+SPRING_PROFILES_ACTIVE=dev    # For development with seeding
+# SPRING_PROFILES_ACTIVE=test  # For testing with seeding  
+# SPRING_PROFILES_ACTIVE=prod  # For production without seeding
+
 APP_SEED_ENABLED=true
 APP_SEED_PRODUCTS=15
 APP_SEED_CUSTOMERS=10
@@ -344,6 +348,14 @@ docker compose down -v && docker compose up -d --build
 * **Criteria:** Dev startup has sample products, customers,... Disabled in prod. Idempotent (no duplicates on restart), configurable quantities via environment variables.
 * **🎯 COMPLETED:** Profile-based data seeding with DataFaker, idempotent seeding, configurable quantities, Docker & Makefile integration
 * **📖 [README Day 10](docs/README_day10.md)**
+* **[Git changelog](https://github.com/viettrungIT3/springboot-mysql-docker/pull/10/files)**
+
+### ✅ Day 11 - — Standardized Logging
+* **Goal:** Logback JSON (profile-dependent), correlation ID filter.
+* **Criteria:** Logs have a traceId; log level can be configured via environment variable: LOG_LEVEL=INFO.
+* **🎯 COMPLETED:** 
+* **📖 [README Day 11](docs/README_day11.md)**
+* **[Git changelog](https://github.com/viettrungIT3/springboot-mysql-docker/pull/11/files)**
 
 ---
 
