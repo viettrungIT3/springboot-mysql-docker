@@ -63,6 +63,16 @@ public class ProductController {
         return ResponseEntity.ok(productService.getById(id));
     }
 
+    @Operation(summary = "Get product by slug", description = "Lấy thông tin chi tiết của một sản phẩm bằng slug (SEO-friendly)", responses = {
+            @ApiResponse(responseCode = "200", description = "Lấy thông tin thành công", content = @Content(schema = @Schema(implementation = ProductResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Không tìm thấy sản phẩm", content = @Content(schema = @Schema(implementation = ApiError.class)))
+    })
+    @GetMapping("/slug/{slug}")
+    public ResponseEntity<ProductResponse> getBySlug(
+            @Parameter(description = "Slug của sản phẩm", example = "iphone-15-pro") @PathVariable String slug) {
+        return ResponseEntity.ok(productService.getBySlug(slug));
+    }
+
     @Operation(summary = "List products with pagination, sorting, search", description = "Lấy danh sách sản phẩm với hỗ trợ phân trang, sắp xếp và tìm kiếm", parameters = {
             @Parameter(name = "page", description = "Số trang (bắt đầu từ 0)", example = "0"),
             @Parameter(name = "size", description = "Kích thước trang", example = "10"),

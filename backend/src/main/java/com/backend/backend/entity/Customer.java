@@ -16,6 +16,9 @@ public class Customer {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String name;
 
+    @Column(name = "slug", length = 180, nullable = false, unique = true)
+    private String slug;
+
     @Column(name = "contact_info", columnDefinition = "TEXT")
     private String contactInfo;
 }

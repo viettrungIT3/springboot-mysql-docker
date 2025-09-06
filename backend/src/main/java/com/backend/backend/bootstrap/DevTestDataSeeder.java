@@ -5,6 +5,7 @@ import com.backend.backend.entity.Customer;
 import com.backend.backend.entity.Product;
 import com.backend.backend.repository.CustomerRepository;
 import com.backend.backend.repository.ProductRepository;
+import com.backend.backend.util.SlugUtil;
 import lombok.RequiredArgsConstructor;
 import net.datafaker.Faker;
 import org.slf4j.Logger;
@@ -57,6 +58,7 @@ public class DevTestDataSeeder implements CommandLineRunner {
 
             Product p = Product.builder()
                     .name(name)
+                    .slug(generateUniqueSlug(name, productRepo))
                     .description(description)
                     .price(price)
                     .quantityInStock(stock)
@@ -80,6 +82,7 @@ public class DevTestDataSeeder implements CommandLineRunner {
 
             Customer c = Customer.builder()
                     .name(name)
+                    .slug(generateUniqueSlug(name, customerRepo))
                     .contactInfo(contactInfo)
                     .build();
 
@@ -93,5 +96,25 @@ public class DevTestDataSeeder implements CommandLineRunner {
         // 5.00 -> 2,000.00
         double raw = faker.number().randomDouble(2, 5, 2000);
         return BigDecimal.valueOf(raw).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private String generateUniqueSlug(String name, ProductRepository repo) {
+        String baseSlug = SlugUtil.toSlug(name);
+        String slug = baseSlug;
+        int counter = 1;
+        while (repo.existsBySlug(slug)) {
+            slug = baseSlug + "-" + counter++;
+        }
+        return slug;
+    }
+
+    private String generateUniqueSlug(String name, CustomerRepository repo) {
+        String baseSlug = SlugUtil.toSlug(name);
+        String slug = baseSlug;
+        int counter = 1;
+        while (repo.existsBySlug(slug)) {
+            slug = baseSlug + "-" + counter++;
+        }
+        return slug;
     }
 }

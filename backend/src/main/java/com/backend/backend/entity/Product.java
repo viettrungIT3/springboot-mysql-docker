@@ -18,6 +18,9 @@ public class Product {
     @Column(name = "name", nullable = false, columnDefinition = "TEXT")
     private String name;
 
+    @Column(name = "slug", length = 150, nullable = false, unique = true)
+    private String slug;
+
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
