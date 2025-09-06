@@ -306,6 +306,20 @@ docker compose down -v && docker compose up -d --build
 * **📖 [README Day 6](docs/README_day6.md)**
 * **[Git changelog](https://github.com/viettrungIT3/springboot-mysql-docker/pull/6/files)**
 
+### ✅ Day 7 — Basic Unit Testing
+* **Goal:** JUnit 5 + Mockito for the core service layer.
+* **Criteria:** Coverage > 50% for core services.
+* **🎯 COMPLETED:** 
+* **📖 [README Day 7](docs/README_day7.md)**
+* **[Git changelog](https://github.com/viettrungIT3/springboot-mysql-docker/pull/7/files)**
+
+### ✅ Day 8 — Testcontainers for Integration Tests
+* **Goal:** Spin up MySQL with Testcontainers, test repositories.
+* **Criteria:** Tests run with ./gradlew test without needing a local MySQL installation.
+* **🎯 COMPLETED:** 
+* **📖 [README Day 8](docs/README_day8.md)**
+* **[Git changelog](https://github.com/viettrungIT3/springboot-mysql-docker/pull/8/files)**
+
 ---
 
 ## 🏆 **Current Architecture Status**
