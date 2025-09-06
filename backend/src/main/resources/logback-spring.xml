@@ -1,0 +1,54 @@
+<configuration scan="true">
+
+  <!-- ===== Common props (env-overridable) ===== -->
+  <property name="APP_NAME" value="${spring.application.name:-springboot-mysql-docker}"/>
+  <property name="LOG_LEVEL" value="${LOG_LEVEL:-INFO}"/>
+
+  <!-- ===== DEV / TEST: console pattern (human-readable) ===== -->
+  <springProfile name="dev,test">
+    <conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter"/>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+      <encoder>
+        <pattern>%d{HH:mm:ss.SSS} %clr(%-5level) [%thread] %clr(%logger{36}){cyan} - %msg
+          | corrId=%X{corrId} | %X{method} %X{path}%n
+        </pattern>
+      </encoder>
+    </appender>
+
+    <root level="${LOG_LEVEL}">
+      <appender-ref ref="CONSOLE"/>
+    </root>
+  </springProfile>
+
+  <!-- ===== PROD: JSON console ===== -->
+  <springProfile name="prod">
+    <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+      <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+        <providers>
+          <timestamp/>
+          <pattern>
+            <pattern>
+              {
+                "level": "%level",
+                "logger": "%logger",
+                "thread": "%thread",
+                "message": "%message",
+                "app": "${APP_NAME}",
+                "corrId": "%mdc{corrId}",
+                "method": "%mdc{method}",
+                "path": "%mdc{path}"
+              }
+            </pattern>
+          </pattern>
+          <stackTrace/>
+          <mdc/> <!-- include all MDC just in case -->
+        </providers>
+      </encoder>
+    </appender>
+
+    <root level="${LOG_LEVEL}">
+      <appender-ref ref="JSON_CONSOLE"/>
+    </root>
+  </springProfile>
+
+</configuration>

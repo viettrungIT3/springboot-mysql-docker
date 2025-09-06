@@ -79,6 +79,21 @@ logs: ## 📄 Tail logs của backend
 	@echo "📄 Following backend logs (Ctrl+C to stop)..."
 	$(DC) logs -f $(SERVICE_APP)
 
+.PHONY: logs-tail
+logs-tail: ## 📄 Xem logs gần đây của backend (last 20 lines)
+	@echo "📄 Recent backend logs (last 20 lines)..."
+	$(DC) logs --tail=20 $(SERVICE_APP)
+
+.PHONY: logs-correlation
+logs-correlation: ## 🔍 Xem logs với correlation ID (usage: make logs-correlation ID=demo-123)
+	@if [ -z "$(ID)" ]; then \
+		echo "🔍 Recent logs with correlation IDs..."; \
+		$(DC) logs --tail=30 $(SERVICE_APP) | grep -E "(corrId=|correlation)" || echo "No correlation IDs found in recent logs"; \
+	else \
+		echo "🔍 Logs for correlation ID: $(ID)"; \
+		$(DC) logs --tail=100 $(SERVICE_APP) | grep "$(ID)" || echo "No logs found for correlation ID: $(ID)"; \
+	fi
+
 .PHONY: logs-all
 logs-all: ## Tail logs tất cả services
 	$(DC) logs -f
