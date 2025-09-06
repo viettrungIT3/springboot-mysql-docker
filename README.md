@@ -53,8 +53,8 @@ BACKEND_PORT=8080      # exposed port on host
 DB_HOST=mysql
 DB_PORT=3306
 
-# JPA/Hibernate
-JPA_DDL_AUTO=update
+# JPA/Hibernate (Flyway manages schema)
+JPA_DDL_AUTO=none
 JPA_SHOW_SQL=true
 
 # Optional: basic user for Spring Security (dev only)
@@ -102,8 +102,9 @@ springboot-mysql-docker/
 │     └─ exception/                  # Global error handling
 │        ├─ GlobalExceptionHandler.java
 │        └─ ResourceNotFoundException.java
-├─ docker/
-│  └─ init_database.sql              # creates schema and seeds sample data
+├─ backend/src/main/resources/db/migration/
+│  ├─ V1__init.sql                   # Flyway schema migration
+│  └─ V2__seed_base.sql              # Flyway seed data migration
 ├─ docs/                             # Documentation
 │  ├─ README_day1.md, README_day2.md
 │  ├─ README_day3.md, README_day4.md
@@ -121,7 +122,7 @@ springboot-mysql-docker/
   - Env: `MYSQL_ROOT_PASSWORD`, `MYSQL_DATABASE`, `MYSQL_USER`, `MYSQL_PASSWORD`
   - Volumes:
     - Named volume for data (`db_data`)
-    - `docker/init_database.sql` mounted to `/docker-entrypoint-initdb.d/init.sql`
+    - ✅ **Flyway migrations** handle schema initialization automatically
 
 - backend
   - Build: `backend/Dockerfile` (multi-stage: JDK build -> JRE runtime)
@@ -320,6 +321,13 @@ docker compose down -v && docker compose up -d --build
 * **📖 [README Day 8](docs/README_day8.md)**
 * **[Git changelog](https://github.com/viettrungIT3/springboot-mysql-docker/pull/8/files)**
 
+### ✅ Day 9 — Flyway Migrations 🛫
+* **Goal:** Move schema and seed from init_database.sql to Flyway V1__init.sql. App auto-migrate on start; remove mount init SQL in Compose.
+* **Criteria:** Flyway is the single source of truth; Testcontainers work with migrations.
+* **🎯 COMPLETED:** Enterprise-grade database migration strategy with Flyway, single source of truth cho schema, automated migrations
+* **📖 [README Day 9](docs/README_day9.md)**
+* **[Git changelog](https://github.com/viettrungIT3/springboot-mysql-docker/pull/9/files)**
+
 ---
 
 ## 🏆 **Current Architecture Status**
@@ -335,6 +343,7 @@ docker compose down -v && docker compose up -d --build
 - 📊 **APIs**: 50+ RESTful endpoints with pagination, sorting, filtering and search
 - 📄 **Pagination**: PageResponse<T> standard with metadata, PageMapper utility
 - 📖 **Documentation**: Swagger/OpenAPI with detailed parameter descriptions
+- 🛫 **Database Migrations**: Flyway-based schema management with automated migrations
 
 ### **📈 Technical Metrics:**
 - **7 Domain Entities** with Lombok integration
@@ -342,8 +351,10 @@ docker compose down -v && docker compose up -d --build
 - **7 MapStruct Mappers** with relationship handling
 - **1 PageMapper Utility** for pagination standardization
 - **14 Controllers** with consistent RESTful design and Swagger docs
+- **2 Flyway Migrations** with automated schema management
 - **Zero Manual Mapping** - All automated with type safety
 - **Unified Pagination** - All list endpoints use PageResponse<T>
+- **Single Source of Truth** - Schema managed in Flyway migrations
 
 **🌟 Ready for production deployment with enterprise-grade patterns!**
 
