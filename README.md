@@ -60,6 +60,12 @@ JPA_SHOW_SQL=true
 # Optional: basic user for Spring Security (dev only)
 # SPRING_SECURITY_USER_NAME=admin
 # SPRING_SECURITY_USER_PASSWORD=admin
+
+# Data Seeding (dev/test profiles only)
+SPRING_PROFILES_ACTIVE=dev
+APP_SEED_ENABLED=true
+APP_SEED_PRODUCTS=15
+APP_SEED_CUSTOMERS=10
 ```
 
 ## Project Structure
@@ -73,7 +79,9 @@ springboot-mysql-docker/
 │     ├─ BackendApplication.java
 │     ├─ config/
 │     │  ├─ OpenApiConfig.java
-│     │  └─ SecurityConfig.java      # BCrypt password encoder
+│     │  ├─ SecurityConfig.java      # BCrypt password encoder
+│     │  ├─ SeedProperties.java      # Data seeding configuration
+│     │  └─ AppConfig.java           # Configuration properties binding
 │     ├─ dto/                        # DTO-first design
 │     │  ├─ common/PageResponse.java
 │     │  ├─ product/                 # Use-case driven DTOs
@@ -91,6 +99,8 @@ springboot-mysql-docker/
 │     ├─ repository/                 # Spring Data JPA
 │     │  ├─ ProductRepository.java, CustomerRepository.java
 │     │  └─ ...Repository.java
+│     ├─ bootstrap/                  # Application startup components
+│     │  └─ DevTestDataSeeder.java   # Profile-based data seeding
 │     ├─ service/                    # Business logic layer
 │     │  ├─ ProductService.java      # Inventory management
 │     │  ├─ OrderService.java        # Complex order processing
@@ -127,7 +137,8 @@ springboot-mysql-docker/
 - backend
   - Build: `backend/Dockerfile` (multi-stage: JDK build -> JRE runtime)
   - Ports: `${BACKEND_PORT:-8080}:8080`
-  - Env: `SPRING_DATASOURCE_*`, `JPA_*` (derived from `.env`)
+  - Env: `SPRING_DATASOURCE_*`, `JPA_*`, `APP_SEED_*` (derived from `.env`)
+  - ✅ **Data Seeding** automatically runs for dev/test profiles with configurable quantities
 
 ## Swagger
 - Swagger UI: `http://localhost:${BACKEND_PORT:-8080}/swagger-ui.html`
@@ -328,6 +339,12 @@ docker compose down -v && docker compose up -d --build
 * **📖 [README Day 9](docs/README_day9.md)**
 * **[Git changelog](https://github.com/viettrungIT3/springboot-mysql-docker/pull/9/files)**
 
+### ✅ Day 10 — Data Seeding with Docker & Makefile 🌱
+* **Goal:** Lightweight data seeding for dev/test (CommandLineRunner) with configurable and idempotent capabilities.
+* **Criteria:** Dev startup has sample products, customers,... Disabled in prod. Idempotent (no duplicates on restart), configurable quantities via environment variables.
+* **🎯 COMPLETED:** Profile-based data seeding with DataFaker, idempotent seeding, configurable quantities, Docker & Makefile integration
+* **📖 [README Day 10](docs/README_day10.md)**
+
 ---
 
 ## 🏆 **Current Architecture Status**
@@ -344,6 +361,7 @@ docker compose down -v && docker compose up -d --build
 - 📄 **Pagination**: PageResponse<T> standard with metadata, PageMapper utility
 - 📖 **Documentation**: Swagger/OpenAPI with detailed parameter descriptions
 - 🛫 **Database Migrations**: Flyway-based schema management with automated migrations
+- 🌱 **Data Seeding**: Profile-based seeding with DataFaker, idempotent seeding, configurable quantities
 
 ### **📈 Technical Metrics:**
 - **7 Domain Entities** with Lombok integration
@@ -352,9 +370,11 @@ docker compose down -v && docker compose up -d --build
 - **1 PageMapper Utility** for pagination standardization
 - **14 Controllers** with consistent RESTful design and Swagger docs
 - **2 Flyway Migrations** with automated schema management
+- **1 Data Seeder** with profile-based configuration and idempotent seeding
 - **Zero Manual Mapping** - All automated with type safety
 - **Unified Pagination** - All list endpoints use PageResponse<T>
 - **Single Source of Truth** - Schema managed in Flyway migrations
+- **Automated Data Seeding** - Development/test environments ready with sample data
 
 **🌟 Ready for production deployment with enterprise-grade patterns!**
 

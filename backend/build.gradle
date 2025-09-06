@@ -43,6 +43,9 @@ dependencies {
 	implementation 'org.flywaydb:flyway-core:10.20.0'
 	implementation 'org.flywaydb:flyway-mysql:10.20.0'
 	
+	// DataFaker for generating test data
+	implementation 'net.datafaker:datafaker:2.3.1'
+	
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	testImplementation 'org.testcontainers:junit-jupiter:1.19.8'

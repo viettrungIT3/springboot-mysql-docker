@@ -31,6 +31,11 @@ services:
       SPRING_JPA_HIBERNATE_DDL_AUTO: ${JPA_DDL_AUTO:-none}
       SPRING_JPA_SHOW_SQL: "${JPA_SHOW_SQL:-true}"
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:-com.mysql.cj.jdbc.Driver}
+
+      # ---- Seed config (áp dụng cho dev/test; prod nên để false) ----
+      APP_SEED_ENABLED: ${APP_SEED_ENABLED:-false}
+      APP_SEED_PRODUCTS: ${APP_SEED_PRODUCTS:-20}
+      APP_SEED_CUSTOMERS: ${APP_SEED_CUSTOMERS:-10}
     ports:
       - "${BACKEND_PORT:-8080}:8080"
     depends_on:
