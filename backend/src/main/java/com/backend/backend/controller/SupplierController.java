@@ -5,6 +5,9 @@ import com.backend.backend.dto.supplier.SupplierCreateRequest;
 import com.backend.backend.dto.supplier.SupplierResponse;
 import com.backend.backend.dto.supplier.SupplierUpdateRequest;
 import com.backend.backend.service.SupplierService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -52,6 +55,11 @@ public class SupplierController {
         return ResponseEntity.ok(supplierService.list(page, size, sort));
     }
 
+    @Operation(summary = "Delete supplier", description = "Xóa một nhà cung cấp khỏi hệ thống (soft delete - đánh dấu deleted_at, dữ liệu vẫn còn trong DB)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Xóa thành công (soft delete)"),
+            @ApiResponse(responseCode = "404", description = "Không tìm thấy nhà cung cấp")
+    })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         supplierService.delete(id);

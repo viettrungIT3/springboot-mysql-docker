@@ -5,6 +5,9 @@ import com.backend.backend.dto.administrator.AdministratorResponse;
 import com.backend.backend.dto.administrator.AdministratorUpdateRequest;
 import com.backend.backend.dto.common.PageResponse;
 import com.backend.backend.service.AdministratorService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -52,6 +55,11 @@ public class AdministratorController {
         return ResponseEntity.ok(administratorService.list(page, size, sort));
     }
 
+    @Operation(summary = "Delete administrator", description = "Xóa một quản trị viên khỏi hệ thống (soft delete - đánh dấu deleted_at, dữ liệu vẫn còn trong DB)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Xóa thành công (soft delete)"),
+            @ApiResponse(responseCode = "404", description = "Không tìm thấy quản trị viên")
+    })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         administratorService.delete(id);

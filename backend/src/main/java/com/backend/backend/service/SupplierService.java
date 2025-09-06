@@ -67,9 +67,9 @@ public class SupplierService {
 
     @Transactional
     public void delete(Long id) {
-        if (!supplierRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Không tìm thấy nhà cung cấp với ID: " + id);
-        }
-        supplierRepository.deleteById(id);
+        Supplier entity = supplierRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy nhà cung cấp với ID: " + id));
+        entity.markAsDeleted();
+        supplierRepository.save(entity);
     }
 }

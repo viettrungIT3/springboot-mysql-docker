@@ -146,6 +146,7 @@ public class StockEntryService {
         product.setQuantityInStock(product.getQuantityInStock() - entity.getQuantity());
         productRepository.save(product);
 
-        stockEntryRepository.deleteById(id);
+        entity.markAsDeleted();
+        stockEntryRepository.save(entity);
     }
 }

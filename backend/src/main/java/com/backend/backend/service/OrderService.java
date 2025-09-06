@@ -167,7 +167,8 @@ public class OrderService {
             productRepository.save(product);
         }
 
-        orderRepository.deleteById(id);
+        entity.markAsDeleted();
+        orderRepository.save(entity);
     }
 
     @Transactional
