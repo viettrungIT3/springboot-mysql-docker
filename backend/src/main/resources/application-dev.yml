@@ -12,3 +12,10 @@ server:
 logging:
   level:
     root: DEBUG
+
+# Seed configuration for development
+app:
+  seed:
+    enabled: true
+    products: 15
+    customers: 10

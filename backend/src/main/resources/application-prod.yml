@@ -15,3 +15,8 @@ springdoc:
 
 server:
   port: 8080
+
+# Seed configuration for production (disabled)
+app:
+  seed:
+    enabled: false

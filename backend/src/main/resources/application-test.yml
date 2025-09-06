@@ -11,3 +11,10 @@ spring:
 
 server:
   port: 0
+
+# Seed configuration for testing
+app:
+  seed:
+    enabled: true
+    products: 5
+    customers: 5
