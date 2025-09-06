@@ -90,9 +90,9 @@ public class ProductController {
         return ResponseEntity.ok(productService.list(page, size, sort, search));
     }
 
-    @Operation(summary = "Delete product", description = "Xóa một sản phẩm khỏi hệ thống", security = {
+    @Operation(summary = "Delete product", description = "Xóa một sản phẩm khỏi hệ thống (soft delete - đánh dấu deleted_at, dữ liệu vẫn còn trong DB)", security = {
             @SecurityRequirement(name = "bearer-jwt") }, responses = {
-                    @ApiResponse(responseCode = "204", description = "Xóa thành công"),
+                    @ApiResponse(responseCode = "204", description = "Xóa thành công (soft delete)"),
                     @ApiResponse(responseCode = "404", description = "Không tìm thấy sản phẩm", content = @Content(schema = @Schema(implementation = ApiError.class)))
             })
     @DeleteMapping("/{id}")

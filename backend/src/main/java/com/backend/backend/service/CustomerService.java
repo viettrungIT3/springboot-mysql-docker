@@ -100,10 +100,10 @@ public class CustomerService {
 
     @Transactional
     public void delete(Long id) {
-        if (!customerRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Không tìm thấy khách hàng với ID: " + id);
-        }
-        customerRepository.deleteById(id);
+        Customer entity = customerRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy khách hàng với ID: " + id));
+        entity.markAsDeleted();
+        customerRepository.save(entity);
     }
 
     /**

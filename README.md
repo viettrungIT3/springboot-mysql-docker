@@ -93,6 +93,7 @@ springboot-mysql-docker/
 │     │  ├─ order/, orderitem/, stockentry/
 │     │  └─ ...CreateRequest, ...UpdateRequest, ...Response
 │     ├─ entity/                     # JPA entities with Lombok
+│     │  ├─ base/AuditableEntity.java # Base class with audit fields
 │     │  ├─ Product.java, Supplier.java, Customer.java
 │     │  ├─ Order.java, OrderItem.java, StockEntry.java
 │     │  └─ Administrator.java
@@ -109,6 +110,9 @@ springboot-mysql-docker/
 │     │  ├─ ProductService.java      # Inventory management
 │     │  ├─ OrderService.java        # Complex order processing
 │     │  └─ ...Service.java          # Stock updates, totals calculation
+│     ├─ util/                       # Utility classes
+│     │  ├─ SlugUtil.java            # Slug generation and validation
+│     │  └─ PageMapper.java          # Pagination utility
 │     ├─ controller/                 # RESTful API layer
 │     │  ├─ ProductController.java   # /api/v1/products
 │     │  ├─ OrderController.java     # /api/v1/orders
@@ -118,7 +122,9 @@ springboot-mysql-docker/
 │        └─ ResourceNotFoundException.java
 ├─ backend/src/main/resources/db/migration/
 │  ├─ V1__init.sql                   # Flyway schema migration
-│  └─ V2__seed_base.sql              # Flyway seed data migration
+│  ├─ V2__seed_base.sql              # Flyway seed data migration
+│  ├─ V3__add_slug_products_customers.sql # Slug support migration
+│  └─ V4__add_audit_and_soft_delete.sql   # Audit fields and soft delete migration
 ├─ docs/                             # Documentation
 │  ├─ README_day1.md, README_day2.md
 │  ├─ README_day3.md, README_day4.md
@@ -167,6 +173,9 @@ springboot-mysql-docker/
 - ✅ **Business Logic**: Automatic stock management and calculations
 - ✅ **Validation**: Comprehensive input validation with meaningful errors
 - ✅ **Security**: Password encryption and sensitive data protection
+- ✅ **Slug Access**: Dual access patterns with both ID and slug-based endpoints
+- ✅ **Soft Delete**: Records are marked as deleted but remain in database
+- ✅ **Audit Trail**: Automatic timestamp management for all entities
 
 ### **Example API Usage**:
 
@@ -184,6 +193,13 @@ curl "http://localhost:8080/api/v1/products/page?page=0&size=5&sort=name"
 curl -X PATCH http://localhost:8080/api/v1/products/1 \
   -H 'Content-Type: application/json' \
   -d '{"price":1199.99}'
+
+# Access by slug (alternative to ID)
+curl "http://localhost:8080/api/v1/products/slug/gaming-laptop"
+
+# Soft delete (record remains in database with deleted_at timestamp)
+curl -X DELETE http://localhost:8080/api/v1/products/1
+# Response: 204 No Content (record still exists in DB but filtered from queries)
 ```
 
 #### **Order Processing** (with automatic stock updates):
@@ -357,6 +373,20 @@ docker compose down -v && docker compose up -d --build
 * **📖 [README Day 11](docs/README_day11.md)**
 * **[Git changelog](https://github.com/viettrungIT3/springboot-mysql-docker/pull/11/files)**
 
+### ✅ Day 12 — Global ID/Slug Feature 🔗
+* **Goal:** Add slug support for Products and Customers with automatic generation and uniqueness validation.
+* **Criteria:** Slug auto-generated from name, unique constraint, API endpoints support both ID and slug access.
+* **🎯 COMPLETED:** Global slug system with SlugUtil, unique constraints, dual access patterns (ID/slug), comprehensive API coverage
+* **📖 [README Day 12](docs/README_day12.md)**
+* **[Git changelog](https://github.com/viettrungIT3/springboot-mysql-docker/pull/12/files)**
+
+### ✅ Day 13 — Soft Delete & Auditing 🗑️⏱️
+* **Goal:** Add audit fields (created_at, updated_at, deleted_at) and implement soft delete for all entities.
+* **Criteria:** Soft delete is the default; deleted records are filtered out; audit timestamps are automatically managed.
+* **🎯 COMPLETED:** Complete audit system with AuditableEntity base class, soft delete implementation, automatic timestamp management, SQL restriction filtering
+* **📖 [README Day 13](docs/README_day13.md)**
+* **[Git changelog](https://github.com/viettrungIT3/springboot-mysql-docker/pull/13/files)**
+
 ---
 
 ## 🏆 **Current Architecture Status**
@@ -374,17 +404,24 @@ docker compose down -v && docker compose up -d --build
 - 📖 **Documentation**: Swagger/OpenAPI with detailed parameter descriptions
 - 🛫 **Database Migrations**: Flyway-based schema management with automated migrations
 - 🌱 **Data Seeding**: Profile-based seeding with DataFaker, idempotent seeding, configurable quantities
+- 🔗 **Slug System**: Global slug support for Products and Customers with dual access patterns
+- 🗑️ **Soft Delete & Auditing**: Complete audit trail with automatic timestamp management and soft delete functionality
 
 ### **📈 Technical Metrics:**
-- **7 Domain Entities** with Lombok integration
+- **7 Domain Entities** with Lombok integration and AuditableEntity base class
 - **21 DTOs** designed with use-case patterns
 - **7 MapStruct Mappers** with relationship handling
 - **1 PageMapper Utility** for pagination standardization
+- **1 SlugUtil Utility** for slug generation and validation
+- **1 AuditableEntity Base Class** with automatic timestamp management
 - **14 Controllers** with consistent RESTful design and Swagger docs
-- **2 Flyway Migrations** with automated schema management
+- **4 Flyway Migrations** with automated schema management and audit fields
 - **1 Data Seeder** with profile-based configuration and idempotent seeding
 - **Zero Manual Mapping** - All automated with type safety
 - **Unified Pagination** - All list endpoints use PageResponse<T>
+- **Dual Access Patterns** - ID and slug-based API endpoints
+- **Soft Delete System** - All entities support soft delete with SQL restriction filtering
+- **Complete Audit Trail** - Automatic created_at, updated_at, deleted_at management
 - **Single Source of Truth** - Schema managed in Flyway migrations
 - **Automated Data Seeding** - Development/test environments ready with sample data
 

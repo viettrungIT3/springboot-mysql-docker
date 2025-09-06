@@ -103,9 +103,9 @@ public class AdministratorService {
 
     @Transactional
     public void delete(Long id) {
-        if (!administratorRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Không tìm thấy quản trị viên với ID: " + id);
-        }
-        administratorRepository.deleteById(id);
+        Administrator entity = administratorRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy quản trị viên với ID: " + id));
+        entity.markAsDeleted();
+        administratorRepository.save(entity);
     }
 }

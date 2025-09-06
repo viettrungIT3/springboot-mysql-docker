@@ -1,14 +1,17 @@
 package com.backend.backend.entity;
 
+import com.backend.backend.entity.base.AuditableEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLRestriction;
 import java.time.OffsetDateTime;
 
 @Entity
 @Table(name = "stock_entries")
+@SQLRestriction("deleted_at IS NULL")
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor @Builder
-public class StockEntry {
+public class StockEntry extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

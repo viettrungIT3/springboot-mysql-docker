@@ -64,6 +64,11 @@ public class CustomerController {
         return ResponseEntity.ok(customerService.list(page, size, sort, search));
     }
 
+    @Operation(summary = "Delete customer", description = "Xóa một khách hàng khỏi hệ thống (soft delete - đánh dấu deleted_at, dữ liệu vẫn còn trong DB)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Xóa thành công (soft delete)"),
+            @ApiResponse(responseCode = "404", description = "Không tìm thấy khách hàng")
+    })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         customerService.delete(id);

@@ -5,6 +5,9 @@ import com.backend.backend.dto.order.OrderCreateRequest;
 import com.backend.backend.dto.order.OrderResponse;
 import com.backend.backend.dto.order.OrderUpdateRequest;
 import com.backend.backend.service.OrderService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -64,6 +67,11 @@ public class OrderController {
         return ResponseEntity.ok(orderService.addItem(orderId, productId, quantity));
     }
 
+    @Operation(summary = "Delete order", description = "Xóa một đơn hàng khỏi hệ thống (soft delete - đánh dấu deleted_at, dữ liệu vẫn còn trong DB)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Xóa thành công (soft delete)"),
+            @ApiResponse(responseCode = "404", description = "Không tìm thấy đơn hàng")
+    })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         orderService.delete(id);

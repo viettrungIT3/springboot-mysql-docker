@@ -100,10 +100,10 @@ public class ProductService {
 
     @Transactional
     public void delete(Long id) {
-        if (!productRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + id);
-        }
-        productRepository.deleteById(id);
+        Product entity = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + id));
+        entity.markAsDeleted();
+        productRepository.save(entity);
     }
 
     /**
