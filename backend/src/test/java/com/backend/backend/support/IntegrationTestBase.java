@@ -57,8 +57,7 @@ public abstract class IntegrationTestBase {
         registry.add("spring.datasource.password", mysql::getPassword);
         registry.add("spring.datasource.driver-class-name", () -> "com.mysql.cj.jdbc.Driver");
 
-        // Tạm thời cho test tự tạo schema; Day 9 sẽ chuyển sang Flyway.
-        registry.add("spring.jpa.hibernate.ddl-auto", () -> "update"); // hoặc "create-drop" nếu muốn sạch mỗi lần
+        // Không set ddl-auto; để Flyway migrate khi context start
         registry.add("spring.jpa.show-sql", () -> "false");
     }
 }

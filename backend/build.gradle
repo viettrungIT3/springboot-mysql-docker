@@ -38,6 +38,11 @@ dependencies {
 	testAnnotationProcessor 'org.mapstruct:mapstruct-processor:1.6.2'
 	
 	runtimeOnly 'com.mysql:mysql-connector-j'
+	
+	// Flyway for database migrations
+	implementation 'org.flywaydb:flyway-core:10.20.0'
+	implementation 'org.flywaydb:flyway-mysql:10.20.0'
+	
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	testImplementation 'org.testcontainers:junit-jupiter:1.19.8'

@@ -1,4 +1,5 @@
 -- Schema initialization for MySQL
+-- Migration V1: Initial database schema
 
 CREATE TABLE IF NOT EXISTS products (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -55,15 +56,3 @@ CREATE TABLE IF NOT EXISTS administrators (
     email VARCHAR(255) NOT NULL UNIQUE,
     full_name TEXT
 );
-
--- Seed minimal data
-INSERT INTO products (name, description, price, quantity_in_stock) VALUES
-('Pen', 'Blue ink pen', 1.50, 100),
-('Notebook', 'A5 ruled', 3.20, 200);
-
-INSERT INTO customers (name, contact_info) VALUES
-('Alice', 'alice@example.com'),
-('Bob', 'bob@example.com');
-
-INSERT INTO suppliers (name, contact_info) VALUES
-('Acme Supplies', 'acme@example.com');

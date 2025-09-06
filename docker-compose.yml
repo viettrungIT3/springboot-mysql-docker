@@ -11,7 +11,6 @@ services:
       - "${MYSQL_PORT:-3306}:3306"
     volumes:
       - db_data:/var/lib/mysql
-      - ./docker/init_database.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 5s
@@ -29,7 +28,7 @@ services:
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:mysql://${DB_HOST:-mysql}:${DB_PORT:-3306}/${MYSQL_DATABASE:-appdb}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-appuser}
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-apppass}
-      SPRING_JPA_HIBERNATE_DDL_AUTO: ${JPA_DDL_AUTO:-update}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${JPA_DDL_AUTO:-none}
       SPRING_JPA_SHOW_SQL: "${JPA_SHOW_SQL:-true}"
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:-com.mysql.cj.jdbc.Driver}
     ports:
