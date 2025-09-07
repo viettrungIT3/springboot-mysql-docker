@@ -7,7 +7,7 @@ COMPOSE_FILE ?= docker-compose.yml
 ENV_FILE     ?= .env
 SERVICE_APP  ?= backend
 SERVICE_DB   ?= mysql
-BACKEND_PORT ?= 8080
+BACKEND_PORT ?= 8081
 # ---- End config ----
 
 # ---- Helpers ----
@@ -26,6 +26,8 @@ help: ## 📚 Hiển thị danh sách lệnh hữu ích
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / && /rebuild|boot|test|clean|unit-/ {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 	@echo "\n📖 DOCUMENTATION & API:"
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / && /swagger|db-/ {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@echo "\n🎯 CONFIGURATION MANAGEMENT:"
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / && /config/ {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 	@echo "\n🎯 QUICK START:"
 	@echo "  \033[33mmake dev-start\033[0m     → Start development environment"
 	@echo "  \033[33mmake test-api\033[0m      → Test API validation"
@@ -189,6 +191,81 @@ test-api: ## 🧪 Test API endpoints với validation
 	@curl -X GET http://localhost:$(BACKEND_PORT)/api/v1/products \
 		-H "Content-Type: application/json" \
 		-w "  Status: %{http_code}\n" -s | jq 'length // "Response received"' 2>/dev/null || echo "  Product list received"
+
+# ==== Configuration Management ====
+
+.PHONY: config
+config: ## 🎯 Mở Configuration Manager (chỉ cần sửa 1 chỗ)
+	@echo "🎯 Opening Centralized Configuration Manager..."
+	@./config-manager.sh
+
+.PHONY: config-show
+config-show: ## 📋 Hiển thị tất cả cấu hình hiện tại
+	@echo "📋 Current Configuration:"
+	@echo "========================"
+	@grep -v "^#" .env | grep -v "^$$" | while read line; do \
+		if [ ! -z "$$line" ]; then \
+			key=$$(echo $$line | cut -d'=' -f1); \
+			value=$$(echo $$line | cut -d'=' -f2); \
+			echo "  $$key = $$value"; \
+		fi; \
+	done
+
+.PHONY: config-backup
+config-backup: ## 💾 Backup cấu hình hiện tại
+	@echo "💾 Creating configuration backup..."
+	@mkdir -p backups/env
+	@cp .env backups/env/.env.backup.$$(date +%Y%m%d_%H%M%S)
+	@echo "✅ Configuration backed up to backups/env/"
+
+.PHONY: config-list-backups
+config-list-backups: ## 📋 Liệt kê tất cả backup cấu hình
+	@echo "📋 Available Configuration Backups:"
+	@echo "=================================="
+	@if [ -d "backups/env" ] && [ "$$(ls -A backups/env 2>/dev/null)" ]; then \
+		ls -la backups/env/.env.backup.* 2>/dev/null | while read line; do \
+			filename=$$(echo $$line | awk '{print $$9}'); \
+			date=$$(echo $$filename | sed 's/.*\.env\.backup\.//'); \
+			size=$$(echo $$line | awk '{print $$5}'); \
+			echo "  📄 $$filename ($$size bytes) - $$date"; \
+		done; \
+	else \
+		echo "  ❌ No backups found in backups/env/"; \
+	fi
+
+.PHONY: config-restore
+config-restore: ## 🔄 Khôi phục cấu hình từ backup (usage: make config-restore BACKUP=filename)
+	@if [ -z "$(BACKUP)" ]; then \
+		echo "❌ Usage: make config-restore BACKUP=filename"; \
+		echo "📋 Available backups:"; \
+		$(MAKE) config-list-backups; \
+		exit 1; \
+	fi
+	@if [ -f "backups/env/$(BACKUP)" ]; then \
+		echo "🔄 Restoring configuration from $(BACKUP)..."; \
+		cp backups/env/$(BACKUP) .env; \
+		echo "✅ Configuration restored!"; \
+		echo "💡 Run 'make restart' to apply changes"; \
+	else \
+		echo "❌ Backup file '$(BACKUP)' not found in backups/env/"; \
+		echo "📋 Available backups:"; \
+		$(MAKE) config-list-backups; \
+	fi
+
+.PHONY: config-clean-backups
+config-clean-backups: ## 🧹 Xóa các backup cũ (giữ lại 5 file gần nhất)
+	@echo "🧹 Cleaning old configuration backups..."
+	@if [ -d "backups/env" ]; then \
+		count=$$(ls backups/env/.env.backup.* 2>/dev/null | wc -l); \
+		if [ $$count -gt 5 ]; then \
+			ls -t backups/env/.env.backup.* | tail -n +6 | xargs rm -f; \
+			echo "✅ Removed $$(($$count - 5)) old backup(s)"; \
+		else \
+			echo "✅ No old backups to clean ($$count backups total)"; \
+		fi; \
+	else \
+		echo "❌ No backup directory found"; \
+	fi
 
 # ==== Advanced Development Tools ====
 

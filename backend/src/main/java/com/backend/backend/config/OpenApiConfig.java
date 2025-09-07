@@ -5,6 +5,8 @@ import io.swagger.v3.oas.models.info.*;
 import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.tags.Tag;
 import io.swagger.v3.oas.models.security.*;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -15,6 +17,9 @@ public class OpenApiConfig {
 
         // Khai báo trước để Day 14 bật JWT dễ dàng
         private static final String JWT_SCHEME = "bearer-jwt";
+
+        @Value("${server.port:8080}")
+        private String serverPort;
 
         @Bean
         public OpenAPI apiSpec() {
@@ -32,7 +37,7 @@ public class OpenApiConfig {
                                                                 .url("https://github.com/viettrungIT3")
                                                                 .email("viettrungcntt03@gmail.com")))
                                 .servers(List.of(
-                                                new Server().url("http://localhost:8080")
+                                                new Server().url("http://localhost:" + serverPort)
                                                                 .description("Local Development"),
                                                 new Server().url("https://api.example.com")
                                                                 .description("Production (example)")))
