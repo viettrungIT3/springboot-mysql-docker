@@ -26,8 +26,10 @@ show_menu() {
     echo "6. Spring Profile (hiện tại: $(grep SPRING_PROFILES_ACTIVE .env | cut -d'=' -f2))"
     echo "7. Seed Products Count (hiện tại: $(grep APP_SEED_PRODUCTS .env | cut -d'=' -f2))"
     echo "8. Seed Customers Count (hiện tại: $(grep APP_SEED_CUSTOMERS .env | cut -d'=' -f2))"
-    echo "9. Hiển thị tất cả cấu hình hiện tại"
-    echo "10. Quản lý backup cấu hình"
+    echo "9. JWT Secret (hiện tại: $(grep JWT_SECRET .env | cut -d'=' -f2 | cut -c1-20)...)"
+    echo "10. JWT Expiration (hiện tại: $(grep JWT_EXPIRATION .env | cut -d'=' -f2))"
+    echo "11. Hiển thị tất cả cấu hình hiện tại"
+    echo "12. Quản lý backup cấu hình"
     echo "0. Thoát"
     echo -e "\n${BLUE}Lưu ý: Sau khi thay đổi, chạy 'make restart' để áp dụng${NC}"
 }
@@ -149,7 +151,7 @@ manage_backups() {
 # Main menu loop
 while true; do
     show_menu
-    read -p "Chọn tùy chọn (0-10): " choice
+    read -p "Chọn tùy chọn (0-12): " choice
     
     case $choice in
         1)
@@ -185,9 +187,17 @@ while true; do
             update_config "APP_SEED_CUSTOMERS" "$current" "👥 Seed Customers Count Configuration"
             ;;
         9)
-            show_all_config
+            current=$(grep JWT_SECRET .env | cut -d'=' -f2)
+            update_config "JWT_SECRET" "$current" "🔐 JWT Secret Configuration"
             ;;
         10)
+            current=$(grep JWT_EXPIRATION .env | cut -d'=' -f2)
+            update_config "JWT_EXPIRATION" "$current" "⏰ JWT Expiration Configuration (milliseconds)"
+            ;;
+        11)
+            show_all_config
+            ;;
+        12)
             manage_backups
             ;;
         0)
@@ -196,7 +206,7 @@ while true; do
             exit 0
             ;;
         *)
-            echo -e "${RED}❌ Lựa chọn không hợp lệ. Vui lòng chọn từ 0-10${NC}"
+            echo -e "${RED}❌ Lựa chọn không hợp lệ. Vui lòng chọn từ 0-12${NC}"
             ;;
     esac
     

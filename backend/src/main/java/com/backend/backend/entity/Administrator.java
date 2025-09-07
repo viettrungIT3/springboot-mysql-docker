@@ -19,13 +19,22 @@ public class Administrator extends AuditableEntity {
     @Column(nullable = false, unique = true, length = 255)
     private String username;
 
-    @Column(nullable = false, length = 255)
-    private String password;
+    @Column(name = "password_hash", nullable = false, length = 255)
+    private String passwordHash;
 
     @Column(nullable = false, unique = true, length = 255)
     private String email;
 
     @Column(name = "full_name", columnDefinition = "TEXT")
     private String fullName;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private Role role = Role.MANAGER;
+
+    public enum Role {
+        ADMIN, MANAGER, SALE
+    }
 }
 

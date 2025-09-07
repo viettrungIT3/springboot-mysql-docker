@@ -479,6 +479,13 @@ make help
 * **📖 [README Day 13](docs/README_day13.md)**
 * **[Git changelog](https://github.com/viettrungIT3/springboot-mysql-docker/pull/13/files)**
 
+### ✅ Day 14 — JWT Security Implementation 🔐
+* **Goal:** Spring Security stateless + JWT; login endpoint; protect API endpoints.
+* **Criteria:** /api/** requires token except /auth/**, /swagger-ui/**; JWT authentication works perfectly.
+* **🎯 COMPLETED:** Complete JWT authentication system with stateless security, role-based access control, and comprehensive testing
+* **📖 [README Day 14](docs/README_day14.md)**
+* **[Git changelog](https://github.com/viettrungIT3/springboot-mysql-docker/pull/14/files)**
+
 ---
 
 ## 🏆 **Current Architecture Status**
@@ -492,7 +499,7 @@ make help
 - 🏗️ **DTO Architecture**: Complete separation of API contracts from domain entities
 - 🚀 **MapStruct Integration**: High-performance compile-time mapping
 - 💼 **Business Logic**: Inventory management, order processing, automatic calculations
-- 🔐 **Security**: BCrypt password encryption, sensitive data protection
+- 🔐 **JWT Security**: Stateless authentication with JWT tokens, role-based access control, and protected API endpoints
 - 📊 **APIs**: 50+ RESTful endpoints with pagination, sorting, filtering and search
 - 📄 **Pagination**: PageResponse<T> standard with metadata, PageMapper utility
 - 📖 **Documentation**: Swagger/OpenAPI with dynamic server URLs and detailed parameter descriptions

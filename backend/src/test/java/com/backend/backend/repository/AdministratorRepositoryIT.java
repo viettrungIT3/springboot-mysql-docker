@@ -18,13 +18,13 @@ class AdministratorRepositoryIT extends IntegrationTestBase {
         // save
         Administrator admin1 = Administrator.builder()
                 .username("admin1")
-                .password("password123")
+                .passwordHash("$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVEFDi")
                 .email("admin1@example.com")
                 .fullName("Administrator One")
                 .build();
         Administrator admin2 = Administrator.builder()
                 .username("admin2")
-                .password("password456")
+                .passwordHash("$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVEFDi")
                 .email("admin2@example.com")
                 .fullName("Administrator Two")
                 .build();
@@ -45,7 +45,7 @@ class AdministratorRepositoryIT extends IntegrationTestBase {
         // Create administrator
         Administrator admin = Administrator.builder()
                 .username("testuser")
-                .password("password123")
+                .passwordHash("$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVEFDi")
                 .email("testuser@example.com")
                 .fullName("Test User")
                 .build();
@@ -66,7 +66,7 @@ class AdministratorRepositoryIT extends IntegrationTestBase {
         // Create administrator
         Administrator admin = Administrator.builder()
                 .username("existinguser")
-                .password("password123")
+                .passwordHash("$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVEFDi")
                 .email("existinguser@example.com")
                 .fullName("Existing User")
                 .build();
@@ -82,7 +82,7 @@ class AdministratorRepositoryIT extends IntegrationTestBase {
         // Create administrator
         Administrator admin = Administrator.builder()
                 .username("emailtest")
-                .password("password123")
+                .passwordHash("$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVEFDi")
                 .email("emailtest@example.com")
                 .fullName("Email Test User")
                 .build();
@@ -98,7 +98,7 @@ class AdministratorRepositoryIT extends IntegrationTestBase {
         // Create first administrator
         Administrator admin1 = Administrator.builder()
                 .username("uniqueuser")
-                .password("password123")
+                .passwordHash("$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVEFDi")
                 .email("unique@example.com")
                 .fullName("Unique User")
                 .build();
@@ -107,7 +107,7 @@ class AdministratorRepositoryIT extends IntegrationTestBase {
         // Try to create second administrator with same username
         Administrator admin2 = Administrator.builder()
                 .username("uniqueuser") // Same username
-                .password("password456")
+                .passwordHash("$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVEFDi")
                 .email("unique2@example.com")
                 .fullName("Unique User 2")
                 .build();

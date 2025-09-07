@@ -12,6 +12,11 @@ spring:
 server:
   port: 0
 
+# JWT Configuration for testing
+jwt:
+  secret: testSecretKey123456789012345678901234567890
+  expiration: 3600000 # 1 hour for testing
+
 # Seed configuration for testing
 app:
   seed:

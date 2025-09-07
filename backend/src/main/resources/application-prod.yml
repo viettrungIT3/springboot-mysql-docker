@@ -16,6 +16,11 @@ springdoc:
 server:
   port: 8080
 
+# JWT Configuration for production
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:86400000} # 24 hours
+
 # Seed configuration for production (disabled)
 app:
   seed:

@@ -39,7 +39,7 @@ class AdministratorServiceTest {
         entity1 = Administrator.builder()
                 .id(1L)
                 .username("admin1")
-                .password("hashedPassword1")
+                .passwordHash("hashedPassword1")
                 .email("admin1@company.com")
                 .fullName("Administrator One")
                 .build();
@@ -64,7 +64,7 @@ class AdministratorServiceTest {
         // arrange
         Administrator toSave = Administrator.builder()
                 .username("newadmin")
-                .password("plainPassword")
+                .passwordHash("plainPassword")
                 .email("newadmin@company.com")
                 .fullName("New Administrator")
                 .build();
@@ -72,7 +72,7 @@ class AdministratorServiceTest {
         Administrator saved = Administrator.builder()
                 .id(99L)
                 .username("newadmin")
-                .password("hashedPassword")
+                .passwordHash("hashedPassword")
                 .email("newadmin@company.com")
                 .fullName("New Administrator")
                 .build();

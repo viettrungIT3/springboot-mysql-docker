@@ -43,7 +43,7 @@ public class AdministratorService {
 
         Administrator entity = administratorMapper.toEntity(request);
         // Encrypt password before saving
-        entity.setPassword(passwordEncoder.encode(request.getPassword()));
+        entity.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         
         Administrator saved = administratorRepository.save(entity);
         return administratorMapper.toResponse(saved);

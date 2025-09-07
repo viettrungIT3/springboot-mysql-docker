@@ -32,6 +32,11 @@ springdoc:
     enabled: true
     path: /v3/api-docs
 
+# JWT Configuration
+jwt:
+  secret: mySecretKey123456789012345678901234567890
+  expiration: 86400000 # 24 hours in milliseconds
+
 # Logging mặc định
 logging:
   level:

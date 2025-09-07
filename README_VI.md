@@ -476,6 +476,13 @@ make help
 * **📖 [README Day 13](docs/README_day13.md)**
 * **[Git changelog](https://github.com/viettrungIT3/springboot-mysql-docker/pull/13/files)**
 
+### ✅ Day 14 — JWT Security Implementation 🔐
+* **Mục tiêu:** Spring Security stateless + JWT; login endpoint; bảo vệ API endpoints.
+* **Tiêu chí:** /api/** cần token trừ /auth/**, /swagger-ui/**; JWT authentication hoạt động hoàn hảo.
+* **🎯 HOÀN THÀNH:** Complete JWT authentication system với stateless security, role-based access control, và comprehensive testing
+* **📖 [README Day 14](docs/README_day14.md)**
+* **[Git changelog](https://github.com/viettrungIT3/springboot-mysql-docker/pull/14/files)**
+
 ## 🏆 Trạng thái Kiến trúc Hiện tại & Chỉ số Kỹ thuật
 
 - 🔧 **Development UX**: Makefile toàn diện với 30+ commands bao gồm quản lý cấu hình
@@ -486,7 +493,7 @@ make help
 - 🛫 **Database Migrations**: Quản lý schema dựa trên Flyway với automated migrations
 - 🌱 **Data Seeding**: Profile-based seeding với DataFaker, idempotent seeding, configurable quantities
 - 🗑️ **Soft Delete & Auditing**: Complete audit trail với automatic timestamp management và soft delete functionality
-- 🔐 **Security**: Basic authentication với bảo vệ admin endpoints
+- 🔐 **JWT Security**: Stateless authentication với JWT tokens, role-based access control, và protected API endpoints
 - 🧪 **Testing**: Integration testing toàn diện với Testcontainers
 - 📊 **Observability**: Structured logging với correlation IDs và profile-based configuration
 - 🔗 **SEO-Friendly URLs**: Global slug system với dual access patterns

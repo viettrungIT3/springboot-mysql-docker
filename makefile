@@ -7,7 +7,7 @@ COMPOSE_FILE ?= docker-compose.yml
 ENV_FILE     ?= .env
 SERVICE_APP  ?= backend
 SERVICE_DB   ?= mysql
-BACKEND_PORT ?= 8081
+BACKEND_PORT ?= 8080
 # ---- End config ----
 
 # ---- Helpers ----
@@ -28,10 +28,13 @@ help: ## 📚 Hiển thị danh sách lệnh hữu ích
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / && /swagger|db-/ {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 	@echo "\n🎯 CONFIGURATION MANAGEMENT:"
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / && /config/ {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@echo "\n🔐 JWT SECURITY:"
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / && /jwt|admin|security/ {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 	@echo "\n🎯 QUICK START:"
 	@echo "  \033[33mmake dev-start\033[0m     → Start development environment"
-	@echo "  \033[33mmake test-api\033[0m      → Test API validation"
+	@echo "  \033[33mmake test-api\033[0m      → Test API with JWT authentication"
 	@echo "  \033[33mmake swagger\033[0m       → Open Swagger UI"
+	@echo "  \033[33mmake create-admin-user\033[0m → Create default admin user"
 	@echo ""
 
 .PHONY: up
@@ -173,24 +176,40 @@ test-swagger: ## 🧪 Test Swagger UI accessibility
 .PHONY: test-api
 test-api: ## 🧪 Test API endpoints với validation
 	@echo "🧪 Testing API validation endpoints..."
-	@echo "\n✅ Test 1: Valid product creation (expect 201)"
-	@curl -X POST http://localhost:$(BACKEND_PORT)/api/v1/products \
+	@echo "\n🔐 Test 1: Login to get JWT token"
+	@TOKEN=$$(curl -X POST http://localhost:$(BACKEND_PORT)/auth/login \
 		-H "Content-Type: application/json" \
-		-d '{"name": "Test Product", "description": "Valid product", "price": 99.99, "quantityInStock": 10}' \
-		-w "  Status: %{http_code}\n" -s | jq '.' 2>/dev/null || echo "  Response received"
-	@echo "\n❌ Test 2: Invalid product (expect 400 with validation errors)"
-	@curl -X POST http://localhost:$(BACKEND_PORT)/api/v1/products \
-		-H "Content-Type: application/json" \
-		-d '{"name": "", "price": -5, "quantityInStock": -1}' \
-		-w "  Status: %{http_code}\n" -s | jq '.fieldErrors // .' 2>/dev/null || echo "  Validation errors received"
-	@echo "\n🔍 Test 3: Resource not found (expect 404)"
-	@curl -X GET http://localhost:$(BACKEND_PORT)/api/v1/products/999 \
-		-H "Content-Type: application/json" \
-		-w "  Status: %{http_code}\n" -s | jq '.' 2>/dev/null || echo "  404 error received"
-	@echo "\n📊 Test 4: List all products (expect 200)"
-	@curl -X GET http://localhost:$(BACKEND_PORT)/api/v1/products \
-		-H "Content-Type: application/json" \
-		-w "  Status: %{http_code}\n" -s | jq 'length // "Response received"' 2>/dev/null || echo "  Product list received"
+		-d '{"username": "admin", "password": "admin123"}' \
+		-s | jq -r '.token' 2>/dev/null || echo "")
+	@if [ -z "$$TOKEN" ] || [ "$$TOKEN" = "null" ]; then \
+		echo "  ❌ Login failed - check if admin user exists"; \
+		echo "  💡 Try: make create-admin-user"; \
+	else \
+		echo "  ✅ Login successful, token obtained"; \
+		echo "\n✅ Test 2: Valid product creation with JWT (expect 201)"; \
+		curl -X POST http://localhost:$(BACKEND_PORT)/api/v1/products \
+			-H "Content-Type: application/json" \
+			-H "Authorization: Bearer $$TOKEN" \
+			-d '{"name": "Test Product", "description": "Valid product", "price": 99.99, "quantityInStock": 10}' \
+			-w "  Status: %{http_code}\n" -s | jq '.' 2>/dev/null || echo "  Response received"; \
+		echo "\n❌ Test 3: Invalid product with JWT (expect 400)"; \
+		curl -X POST http://localhost:$(BACKEND_PORT)/api/v1/products \
+			-H "Content-Type: application/json" \
+			-H "Authorization: Bearer $$TOKEN" \
+			-d '{"name": "", "price": -5, "quantityInStock": -1}' \
+			-w "  Status: %{http_code}\n" -s | jq '.fieldErrors // .' 2>/dev/null || echo "  Validation errors received"; \
+		echo "\n🔍 Test 4: Resource not found with JWT (expect 404)"; \
+		curl -X GET http://localhost:$(BACKEND_PORT)/api/v1/products/999 \
+			-H "Authorization: Bearer $$TOKEN" \
+			-w "  Status: %{http_code}\n" -s | jq '.' 2>/dev/null || echo "  404 error received"; \
+		echo "\n📊 Test 5: List all products with JWT (expect 200)"; \
+		curl -X GET http://localhost:$(BACKEND_PORT)/api/v1/products \
+			-H "Authorization: Bearer $$TOKEN" \
+			-w "  Status: %{http_code}\n" -s | jq 'length // "Response received"' 2>/dev/null || echo "  Product list received"; \
+		echo "\n🚫 Test 6: Access without JWT (expect 401)"; \
+		curl -X GET http://localhost:$(BACKEND_PORT)/api/v1/products \
+			-w "  Status: %{http_code}\n" -s | jq '.' 2>/dev/null || echo "  401 error received"; \
+	fi
 
 # ==== Configuration Management ====
 
@@ -453,3 +472,113 @@ test-full-suite: ## 🎯 Run complete test suite (unit + integration + API)
 	@echo "\n4️⃣ Running API validation tests..."
 	$(MAKE) test-api
 	@echo "\n✅ Complete test suite finished successfully!"
+
+# ==== Day 14 - JWT Security Commands ====
+
+.PHONY: create-admin-user
+create-admin-user: ## 👤 Tạo admin user mặc định (username: admin, password: admin123)
+	@echo "👤 Creating default admin user..."
+	@echo "📝 Username: admin"
+	@echo "🔐 Password: admin123"
+	@echo "🔑 Role: ADMIN"
+	@echo ""
+	@echo "⚠️  This will create a user in the database. Make sure backend is running."
+	@read -p "Continue? (y/N): " confirm && [ "$$confirm" = "y" ] || exit 1
+	@./scripts/create-admin-user.sh
+	@echo "✅ Admin user created successfully!"
+	@echo "💡 You can now use 'make test-api' to test JWT authentication"
+
+.PHONY: test-jwt-login
+test-jwt-login: ## 🔐 Test JWT login endpoint
+	@echo "🔐 Testing JWT login..."
+	@echo "\n✅ Test 1: Valid login (admin/admin123)"
+	@curl -X POST http://localhost:$(BACKEND_PORT)/auth/login \
+		-H "Content-Type: application/json" \
+		-d '{"username": "admin", "password": "admin123"}' \
+		-w "  Status: %{http_code}\n" -s | jq '.' 2>/dev/null || echo "  Login response received"
+	@echo "\n❌ Test 2: Invalid login (wrong password)"
+	@curl -X POST http://localhost:$(BACKEND_PORT)/auth/login \
+		-H "Content-Type: application/json" \
+		-d '{"username": "admin", "password": "wrongpassword"}' \
+		-w "  Status: %{http_code}\n" -s | jq '.' 2>/dev/null || echo "  Error response received"
+	@echo "\n❌ Test 3: Invalid login (non-existent user)"
+	@curl -X POST http://localhost:$(BACKEND_PORT)/auth/login \
+		-H "Content-Type: application/json" \
+		-d '{"username": "nonexistent", "password": "password"}' \
+		-w "  Status: %{http_code}\n" -s | jq '.' 2>/dev/null || echo "  Error response received"
+
+.PHONY: test-jwt-protected
+test-jwt-protected: ## 🛡️ Test JWT protected endpoints
+	@echo "🛡️ Testing JWT protected endpoints..."
+	@echo "\n🔐 Step 1: Login to get JWT token"
+	@TOKEN=$$(curl -X POST http://localhost:$(BACKEND_PORT)/auth/login \
+		-H "Content-Type: application/json" \
+		-d '{"username": "admin", "password": "admin123"}' \
+		-s | jq -r '.token' 2>/dev/null || echo "")
+	@if [ -z "$$TOKEN" ] || [ "$$TOKEN" = "null" ]; then \
+		echo "  ❌ Login failed - check if admin user exists"; \
+		echo "  💡 Try: make create-admin-user"; \
+		exit 1; \
+	fi
+	@echo "  ✅ JWT token obtained: $${TOKEN:0:20}..."
+	@echo "\n🛡️ Step 2: Test protected endpoints with JWT"
+	@echo "  📊 Testing /api/v1/products..."
+	@curl -X GET http://localhost:$(BACKEND_PORT)/api/v1/products \
+		-H "Authorization: Bearer $$TOKEN" \
+		-w "  Status: %{http_code}\n" -s | jq 'length // "Response received"' 2>/dev/null || echo "  Products list received"
+	@echo "  👥 Testing /api/v1/administrators..."
+	@curl -X GET http://localhost:$(BACKEND_PORT)/api/v1/administrators \
+		-H "Authorization: Bearer $$TOKEN" \
+		-w "  Status: %{http_code}\n" -s | jq 'length // "Response received"' 2>/dev/null || echo "  Administrators list received"
+	@echo "\n🚫 Step 3: Test without JWT (should fail)"
+	@curl -X GET http://localhost:$(BACKEND_PORT)/api/v1/products \
+		-w "  Status: %{http_code}\n" -s | jq '.' 2>/dev/null || echo "  401 error received"
+
+.PHONY: test-jwt-expired
+test-jwt-expired: ## ⏰ Test JWT token expiration
+	@echo "⏰ Testing JWT token expiration..."
+	@echo "💡 This test requires a short-lived token (set JWT_EXPIRATION=1000 in .env)"
+	@echo "⚠️  Make sure to set JWT_EXPIRATION=1000 (1 second) in your .env file first"
+	@read -p "Continue? (y/N): " confirm && [ "$$confirm" = "y" ] || exit 1
+	@echo "\n🔐 Step 1: Login to get short-lived token"
+	@TOKEN=$$(curl -X POST http://localhost:$(BACKEND_PORT)/auth/login \
+		-H "Content-Type: application/json" \
+		-d '{"username": "admin", "password": "admin123"}' \
+		-s | jq -r '.token' 2>/dev/null || echo "")
+	@if [ -z "$$TOKEN" ] || [ "$$TOKEN" = "null" ]; then \
+		echo "  ❌ Login failed"; \
+		exit 1; \
+	fi
+	@echo "  ✅ Token obtained: $${TOKEN:0:20}..."
+	@echo "\n⏳ Step 2: Wait for token to expire (2 seconds)"
+	@sleep 2
+	@echo "\n🚫 Step 3: Try to use expired token"
+	@curl -X GET http://localhost:$(BACKEND_PORT)/api/v1/products \
+		-H "Authorization: Bearer $$TOKEN" \
+		-w "  Status: %{http_code}\n" -s | jq '.' 2>/dev/null || echo "  401 error received"
+
+.PHONY: security-status
+security-status: ## 🔒 Check security configuration status
+	@echo "🔒 Security Configuration Status"
+	@echo "================================"
+	@echo "🌐 Backend URL: http://localhost:$(BACKEND_PORT)"
+	@echo "🔐 Login Endpoint: http://localhost:$(BACKEND_PORT)/auth/login"
+	@echo "📖 Swagger UI: http://localhost:$(BACKEND_PORT)/swagger-ui/index.html"
+	@echo ""
+	@echo "🛡️ Protected Endpoints (require JWT):"
+	@echo "  - /api/v1/products"
+	@echo "  - /api/v1/customers"
+	@echo "  - /api/v1/orders"
+	@echo "  - /api/v1/suppliers"
+	@echo "  - /api/v1/administrators"
+	@echo ""
+	@echo "🔓 Public Endpoints (no JWT required):"
+	@echo "  - /auth/login"
+	@echo "  - /swagger-ui/**"
+	@echo "  - /v3/api-docs/**"
+	@echo ""
+	@echo "🧪 Quick Tests:"
+	@echo "  make test-jwt-login     → Test login endpoint"
+	@echo "  make test-jwt-protected → Test protected endpoints"
+	@echo "  make test-api          → Full API test with JWT"
+	@echo "  make create-admin-user → Create default admin user"
