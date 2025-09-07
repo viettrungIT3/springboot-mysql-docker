@@ -1,4 +1,6 @@
 .env
+.env.backup
+.env.backup.*
 
 # Test config
 backend/src/test/resources/test-config.properties
