@@ -484,10 +484,7 @@ create-admin-user: ## 👤 Tạo admin user mặc định (username: admin, pass
 	@echo ""
 	@echo "⚠️  This will create a user in the database. Make sure backend is running."
 	@read -p "Continue? (y/N): " confirm && [ "$$confirm" = "y" ] || exit 1
-	@curl -X POST http://localhost:$(BACKEND_PORT)/api/v1/administrators \
-		-H "Content-Type: application/json" \
-		-d '{"username": "admin", "passwordHash": "$$2a$$10$$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVEFDi", "email": "admin@example.com", "fullName": "System Administrator", "role": "ADMIN"}' \
-		-w "  Status: %{http_code}\n" -s | jq '.' 2>/dev/null || echo "  Admin user created"
+	@./scripts/create-admin-user.sh
 	@echo "✅ Admin user created successfully!"
 	@echo "💡 You can now use 'make test-api' to test JWT authentication"
 
