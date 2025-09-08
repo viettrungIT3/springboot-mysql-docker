@@ -486,6 +486,13 @@ make help
 * **📖 [README Day 14](docs/README_day14.md)**
 * **[Git changelog](https://github.com/viettrungIT3/springboot-mysql-docker/pull/14/files)**
 
+### ✅ Day 15 — Password Hashing & Admin UI Base 🔐
+* **Mục tiêu:** Implement password hashing for Administrator and create Next.js Admin UI with authentication.
+* **Tiêu chí:** BCrypt password hashing, Next.js frontend with Ant Design, Docker integration, full-stack authentication.
+* **🎯 HOÀN THÀNH:** Complete authentication system with modern frontend, password security, and admin dashboard ui
+* **📖 [README Day 15](docs/README_day15.md)**
+* **[Git changelog](https://github.com/viettrungIT3/springboot-mysql-docker/pull/15/files)**
+
 ---
 
 ## 🏆 **Current Architecture Status**

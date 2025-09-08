@@ -4,6 +4,7 @@ import com.backend.backend.entity.base.AuditableEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLRestriction;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @Entity
 @Table(name = "administrators")
@@ -31,10 +32,17 @@ public class Administrator extends AuditableEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
-    private Role role = Role.MANAGER;
+    private Role role = Role.ADMIN;
 
-    public enum Role {
-        ADMIN, MANAGER, SALE
+    // Password hashing methods
+    public void setPassword(String rawPassword) {
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        this.passwordHash = encoder.encode(rawPassword);
+    }
+
+    public boolean checkPassword(String rawPassword) {
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        return encoder.matches(rawPassword, this.passwordHash);
     }
 }
 
