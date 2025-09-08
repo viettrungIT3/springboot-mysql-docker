@@ -16,6 +16,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 20
+    networks:
+      - app-network
 
   backend:
     build:
@@ -26,7 +28,7 @@ services:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
 
-      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:mysql://${DB_HOST:-mysql}:${MYSQL_PORT:-3306}/${MYSQL_DATABASE:-appdb}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:mysql://${MYSQL_HOST:-mysql}:${MYSQL_PORT:-3306}/${MYSQL_DATABASE:-appdb}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
       SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-appuser}
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
       SPRING_JPA_HIBERNATE_DDL_AUTO: ${JPA_DDL_AUTO:-none}
@@ -41,12 +43,17 @@ services:
       # ---- JWT Configuration ----
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      
+      # CORS configuration from .env
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:${FRONTEND_PORT:-3000}}
     ports:
       - "${BACKEND_PORT:-8080}:${BACKEND_PORT:-8080}"
     depends_on:
       mysql:
         condition: service_healthy
     restart: unless-stopped
+    networks:
+      - app-network
 
   # Service for running unit tests
   test-runner:
@@ -60,6 +67,27 @@ services:
       - ./backend/src:/app/src:ro
     profiles:
       - test
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=development
+      # API URL from .env
+      - NEXT_PUBLIC_API_URL=http://localhost:${BACKEND_PORT:-8080}
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
 
 volumes:
   db_data:
