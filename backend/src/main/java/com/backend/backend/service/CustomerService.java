@@ -28,6 +28,11 @@ public class CustomerService {
     }
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(cacheNames = CacheNames.CUSTOMER_LIST, allEntries = true),
+        @CacheEvict(cacheNames = CacheNames.CUSTOMER_BY_ID, key = "#result.id", condition = "#result != null"),
+        @CacheEvict(cacheNames = CacheNames.CUSTOMER_BY_SLUG, key = "#result.slug", condition = "#result != null")
+    })
     public CustomerResponse create(CustomerCreateRequest request) {
         Customer entity = customerMapper.toEntity(request);
         entity.setSlug(generateUniqueSlug(request.getName()));
@@ -36,6 +41,11 @@ public class CustomerService {
     }
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(cacheNames = CacheNames.CUSTOMER_LIST, allEntries = true),
+        @CacheEvict(cacheNames = CacheNames.CUSTOMER_BY_ID, key = "#id"),
+        @CacheEvict(cacheNames = CacheNames.CUSTOMER_BY_SLUG, allEntries = true) // Evict by slug if slug changes
+    })
     public CustomerResponse update(Long id, CustomerUpdateRequest request) {
         Customer entity = customerRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy khách hàng với ID: " + id));
@@ -51,6 +61,7 @@ public class CustomerService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.CUSTOMER_BY_ID, key = "#id")
     public CustomerResponse getById(Long id) {
         Customer entity = customerRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy khách hàng với ID: " + id));
@@ -58,6 +69,7 @@ public class CustomerService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.CUSTOMER_BY_SLUG, key = "#slug")
     public CustomerResponse getBySlug(String slug) {
         Customer entity = customerRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy khách hàng với slug: " + slug));
@@ -72,6 +84,10 @@ public class CustomerService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(
+        cacheNames = CacheNames.CUSTOMER_LIST,
+        key = "T(java.util.Objects).hash(#page,#size,#sort,#search)"
+    )
     public PageResponse<CustomerResponse> list(int page, int size, String sort, String search) {
         Sort s = (sort == null || sort.isBlank())
                 ? Sort.by("id").descending()
@@ -99,6 +115,11 @@ public class CustomerService {
     }
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(cacheNames = CacheNames.CUSTOMER_LIST, allEntries = true),
+        @CacheEvict(cacheNames = CacheNames.CUSTOMER_BY_ID, key = "#id"),
+        @CacheEvict(cacheNames = CacheNames.CUSTOMER_BY_SLUG, allEntries = true) // Evict by slug if slug changes
+    })
     public void delete(Long id) {
         Customer entity = customerRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy khách hàng với ID: " + id));

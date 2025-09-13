@@ -51,3 +51,11 @@ management:
   endpoint:
     health:
       show-details: when-authorized
+
+# Cache configuration
+app:
+  cache:
+    # TTL theo giây (có thể override bằng ENV)
+    ttl-seconds: ${APP_CACHE_TTL_SECONDS:300}
+    # Số phần tử tối đa cho mỗi cache
+    maximum-size: ${APP_CACHE_MAX_SIZE:1000}

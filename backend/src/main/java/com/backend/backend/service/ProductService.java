@@ -1,5 +1,6 @@
 package com.backend.backend.service;
 
+import com.backend.backend.config.CacheNames;
 import com.backend.backend.dto.common.PageResponse;
 import com.backend.backend.dto.product.ProductCreateRequest;
 import com.backend.backend.dto.product.ProductResponse;
@@ -10,6 +11,9 @@ import com.backend.backend.mapper.ProductMapper;
 import com.backend.backend.repository.ProductRepository;
 import com.backend.backend.util.PageMapper;
 import com.backend.backend.util.SlugUtil;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +32,11 @@ public class ProductService {
     }
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(cacheNames = CacheNames.PRODUCT_LIST, allEntries = true),
+        @CacheEvict(cacheNames = CacheNames.PRODUCT_BY_ID,   key = "#result.id", condition = "#result != null"),
+        @CacheEvict(cacheNames = CacheNames.PRODUCT_BY_SLUG, key = "#result.slug", condition = "#result != null")
+    })
     public ProductResponse create(ProductCreateRequest request) {
         Product entity = productMapper.toEntity(request);
         entity.setSlug(generateUniqueSlug(request.getName()));
@@ -36,6 +45,11 @@ public class ProductService {
     }
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(cacheNames = CacheNames.PRODUCT_LIST, allEntries = true),
+        @CacheEvict(cacheNames = CacheNames.PRODUCT_BY_ID,   key = "#id"),
+        @CacheEvict(cacheNames = CacheNames.PRODUCT_BY_SLUG, key = "#result.slug", condition = "#result != null")
+    })
     public ProductResponse update(Long id, ProductUpdateRequest request) {
         Product entity = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + id));
@@ -51,6 +65,7 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.PRODUCT_BY_ID, key = "#id")
     public ProductResponse getById(Long id) {
         Product entity = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + id));
@@ -58,6 +73,7 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.PRODUCT_BY_SLUG, key = "#slug")
     public ProductResponse getBySlug(String slug) {
         Product entity = productRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với slug: " + slug));
@@ -72,6 +88,10 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(
+        cacheNames = CacheNames.PRODUCT_LIST,
+        key = "T(java.util.Objects).hash(#page,#size,#sort,#search)"
+    )
     public PageResponse<ProductResponse> list(int page, int size, String sort, String search) {
         Sort s = (sort == null || sort.isBlank())
                 ? Sort.by("id").descending()
@@ -99,6 +119,11 @@ public class ProductService {
     }
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(cacheNames = CacheNames.PRODUCT_LIST, allEntries = true),
+        @CacheEvict(cacheNames = CacheNames.PRODUCT_BY_ID,   key = "#id"),
+        @CacheEvict(cacheNames = CacheNames.PRODUCT_BY_SLUG, allEntries = true)
+    })
     public void delete(Long id) {
         Product entity = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + id));
