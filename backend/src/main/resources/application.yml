@@ -41,3 +41,13 @@ jwt:
 logging:
   level:
     root: INFO
+
+# Spring Boot Actuator configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
