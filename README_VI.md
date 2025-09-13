@@ -483,6 +483,17 @@ make help
 * **📖 [README Day 15](docs/README_day15.md)**
 * **[Git changelog](https://github.com/viettrungIT3/springboot-mysql-docker/pull/15/files)**
 
+### ✅ Day 16 — CORS & Rate Limiting Configuration 🌐🚦
+* **Mục tiêu:** CORS per profile; Bucket4j rate limit public endpoints.
+* **Tiêu chí:** 429 khi vượt limit; cấu hình qua environment variables.
+* **🎯 HOÀN THÀNH:** Complete CORS configuration với environment variables và Bucket4j rate limiting với bucket isolation
+* **📖 [README Day 16](docs/README_day16.md)**
+* **Tính năng:**
+  - Environment-based CORS configuration
+  - Bucket4j rate limiting với isolated buckets per endpoint type
+  - Public (100/min), API (200/min), Auth (10/min) rate limits
+  - Comprehensive testing và monitoring
+
 ## 🏆 Trạng thái Kiến trúc Hiện tại & Chỉ số Kỹ thuật
 
 - 🔧 **Development UX**: Makefile toàn diện với 30+ commands bao gồm quản lý cấu hình
@@ -494,6 +505,8 @@ make help
 - 🌱 **Data Seeding**: Profile-based seeding với DataFaker, idempotent seeding, configurable quantities
 - 🗑️ **Soft Delete & Auditing**: Complete audit trail với automatic timestamp management và soft delete functionality
 - 🔐 **Security**: BCrypt password hashing với authentication system
+- 🌐 **CORS Configuration**: Environment-based CORS với endpoint-specific rules và comprehensive validation
+- 🚦 **Rate Limiting**: Bucket4j-based rate limiting với isolated buckets per endpoint type (Public/API/Auth)
 - 🌐 **Frontend**: Next.js Admin UI với Ant Design và TypeScript
 - 🐳 **Full Stack**: Docker integration với multi-service development
 - 🔗 **API Integration**: Seamless frontend-backend communication
@@ -502,7 +515,7 @@ make help
 - 🔗 **SEO-Friendly URLs**: Global slug system với dual access patterns
 
 ### 📊 **Chỉ số Code:**
-- **15 Controllers** với thiết kế RESTful nhất quán và Swagger docs (bao gồm AuthenticationController)
+- **17 Controllers** với thiết kế RESTful nhất quán và Swagger docs (bao gồm AuthenticationController, CorsTestController, RateLimitTestController)
 - **15 Services** với business logic và validation (bao gồm AuthenticationService)
 - **14 Repositories** với JPA và custom query methods
 - **14 Entities** với audit fields và soft delete support
@@ -512,6 +525,8 @@ make help
 - **1 Data Seeder** với profile-based configuration và idempotent seeding
 - **1 Centralized Configuration System** với đồng bộ hóa tự động trên tất cả components
 - **1 Next.js Frontend** với 15+ components và services
+- **2 Security Filters** với CORS và Rate Limiting (CorsFilter, RateLimitFilter)
+- **2 Configuration Components** với environment-based settings (CorsProperties, RateLimitProperties)
 
 ### 🎯 **Tính năng Chính:**
 - **Complete Audit Trail** - Quản lý tự động created_at, updated_at, deleted_at
@@ -521,5 +536,7 @@ make help
 - **Dynamic Swagger URLs** - Server URLs tự động cập nhật dựa trên cấu hình
 - **Comprehensive Testing** - Integration tests bao gồm tất cả CRUD operations và error scenarios
 - **Password Security** - BCrypt hashing với secure authentication flow
+- **CORS Security** - Environment-based CORS với endpoint-specific rules và comprehensive validation
+- **Rate Limiting** - Bucket4j-based protection với isolated buckets per endpoint type
 - **Modern Frontend** - Next.js Admin UI với responsive design và professional UX
 - **Full Stack Integration** - Seamless frontend-backend communication với Docker

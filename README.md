@@ -493,6 +493,17 @@ make help
 * **📖 [README Day 15](docs/README_day15.md)**
 * **[Git changelog](https://github.com/viettrungIT3/springboot-mysql-docker/pull/15/files)**
 
+### ✅ Day 16 — CORS & Rate Limiting Configuration 🌐🚦
+* **Goal:** CORS per profile; Bucket4j rate limit public endpoints.
+* **Criteria:** 429 when exceeding limit; configuration via environment variables.
+* **🎯 COMPLETED:** Complete CORS configuration with environment variables and Bucket4j rate limiting with bucket isolation
+* **📖 [README Day 16](docs/README_day16.md)**
+* **Features:**
+  - Environment-based CORS configuration
+  - Bucket4j rate limiting with isolated buckets per endpoint type
+  - Public (100/min), API (200/min), Auth (10/min) rate limits
+  - Comprehensive testing and monitoring
+
 ---
 
 ## 🏆 **Current Architecture Status**
@@ -507,6 +518,8 @@ make help
 - 🚀 **MapStruct Integration**: High-performance compile-time mapping
 - 💼 **Business Logic**: Inventory management, order processing, automatic calculations
 - 🔐 **JWT Security**: Stateless authentication with JWT tokens, role-based access control, and protected API endpoints
+- 🌐 **CORS Configuration**: Environment-based CORS with endpoint-specific rules and comprehensive validation
+- 🚦 **Rate Limiting**: Bucket4j-based rate limiting with isolated buckets per endpoint type (Public/API/Auth)
 - 📊 **APIs**: 50+ RESTful endpoints with pagination, sorting, filtering and search
 - 📄 **Pagination**: PageResponse<T> standard with metadata, PageMapper utility
 - 📖 **Documentation**: Swagger/OpenAPI with dynamic server URLs and detailed parameter descriptions
