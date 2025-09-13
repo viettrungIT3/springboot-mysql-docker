@@ -1,5 +1,6 @@
 package com.backend.backend.service;
 
+import com.backend.backend.config.CacheNames;
 import com.backend.backend.dto.common.PageResponse;
 import com.backend.backend.dto.supplier.SupplierCreateRequest;
 import com.backend.backend.dto.supplier.SupplierResponse;
@@ -9,6 +10,9 @@ import com.backend.backend.exception.ResourceNotFoundException;
 import com.backend.backend.mapper.SupplierMapper;
 import com.backend.backend.repository.SupplierRepository;
 import com.backend.backend.util.PageMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +31,10 @@ public class SupplierService {
     }
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(cacheNames = CacheNames.SUPPLIER_LIST, allEntries = true),
+        @CacheEvict(cacheNames = CacheNames.SUPPLIER_BY_ID, key = "#result.id", condition = "#result != null")
+    })
     public SupplierResponse create(SupplierCreateRequest request) {
         Supplier entity = supplierMapper.toEntity(request);
         Supplier saved = supplierRepository.save(entity);
@@ -34,6 +42,10 @@ public class SupplierService {
     }
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(cacheNames = CacheNames.SUPPLIER_LIST, allEntries = true),
+        @CacheEvict(cacheNames = CacheNames.SUPPLIER_BY_ID, key = "#id")
+    })
     public SupplierResponse update(Long id, SupplierUpdateRequest request) {
         Supplier entity = supplierRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy nhà cung cấp với ID: " + id));
@@ -43,6 +55,7 @@ public class SupplierService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.SUPPLIER_BY_ID, key = "#id")
     public SupplierResponse getById(Long id) {
         Supplier entity = supplierRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy nhà cung cấp với ID: " + id));
@@ -57,6 +70,10 @@ public class SupplierService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(
+        cacheNames = CacheNames.SUPPLIER_LIST,
+        key = "T(java.util.Objects).hash(#page,#size,#sort)"
+    )
     public PageResponse<SupplierResponse> list(int page, int size, String sort) {
         Sort s = (sort == null || sort.isBlank()) ? Sort.by("id").descending() : Sort.by(sort);
         Pageable pageable = PageRequest.of(page, size, s);
@@ -66,6 +83,10 @@ public class SupplierService {
     }
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(cacheNames = CacheNames.SUPPLIER_LIST, allEntries = true),
+        @CacheEvict(cacheNames = CacheNames.SUPPLIER_BY_ID, key = "#id")
+    })
     public void delete(Long id) {
         Supplier entity = supplierRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy nhà cung cấp với ID: " + id));

@@ -1,5 +1,6 @@
 package com.backend.backend.service;
 
+import com.backend.backend.config.CacheNames;
 import com.backend.backend.dto.common.PageResponse;
 import com.backend.backend.dto.order.OrderCreateRequest;
 import com.backend.backend.dto.order.OrderResponse;
@@ -13,6 +14,9 @@ import com.backend.backend.repository.CustomerRepository;
 import com.backend.backend.repository.OrderRepository;
 import com.backend.backend.repository.ProductRepository;
 import com.backend.backend.util.PageMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +45,11 @@ public class OrderService {
     }
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(cacheNames = CacheNames.ORDER_LIST, allEntries = true),
+        @CacheEvict(cacheNames = CacheNames.ORDER_BY_ID, key = "#result.id", condition = "#result != null"),
+        @CacheEvict(cacheNames = CacheNames.ORDER_BY_CUSTOMER, key = "#request.customerId", condition = "#request.customerId != null")
+    })
     public OrderResponse create(OrderCreateRequest request) {
         // Validate customer exists
         // Customer customer = customerRepository.findById(request.getCustomerId())
@@ -105,6 +114,11 @@ public class OrderService {
     }
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(cacheNames = CacheNames.ORDER_LIST, allEntries = true),
+        @CacheEvict(cacheNames = CacheNames.ORDER_BY_ID, key = "#id"),
+        @CacheEvict(cacheNames = CacheNames.ORDER_BY_CUSTOMER, allEntries = true) // Evict by customer if customer changes
+    })
     public OrderResponse update(Long id, OrderUpdateRequest request) {
         Order entity = orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng với ID: " + id));
@@ -122,6 +136,7 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.ORDER_BY_ID, key = "#id")
     public OrderResponse getById(Long id) {
         Order entity = orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng với ID: " + id));
@@ -136,6 +151,10 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(
+        cacheNames = CacheNames.ORDER_LIST,
+        key = "T(java.util.Objects).hash(#page,#size,#sort)"
+    )
     public PageResponse<OrderResponse> list(int page, int size, String sort) {
         Sort s = (sort == null || sort.isBlank()) ? Sort.by("orderDate").descending() : Sort.by(sort);
         Pageable pageable = PageRequest.of(page, size, s);
@@ -145,6 +164,7 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.ORDER_BY_CUSTOMER, key = "#customerId")
     public List<OrderResponse> findByCustomerId(Long customerId) {
         if (!customerRepository.existsById(customerId)) {
             throw new ResourceNotFoundException("Không tìm thấy khách hàng với ID: " + customerId);
@@ -156,6 +176,11 @@ public class OrderService {
     }
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(cacheNames = CacheNames.ORDER_LIST, allEntries = true),
+        @CacheEvict(cacheNames = CacheNames.ORDER_BY_ID, key = "#id"),
+        @CacheEvict(cacheNames = CacheNames.ORDER_BY_CUSTOMER, key = "#entity.customer.id", condition = "#entity != null")
+    })
     public void delete(Long id) {
         Order entity = orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng với ID: " + id));
@@ -172,6 +197,11 @@ public class OrderService {
     }
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(cacheNames = CacheNames.ORDER_LIST, allEntries = true),
+        @CacheEvict(cacheNames = CacheNames.ORDER_BY_ID, key = "#orderId"),
+        @CacheEvict(cacheNames = CacheNames.ORDER_BY_CUSTOMER, allEntries = true) // Evict by customer if order changes
+    })
     public OrderResponse addItem(Long orderId, Long productId, Integer quantity) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng với ID: " + orderId));
