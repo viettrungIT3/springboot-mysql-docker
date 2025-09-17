@@ -1,10 +1,10 @@
 package com.backend.backend.bootstrap;
 
 import com.backend.backend.config.SeedProperties;
-import com.backend.backend.entity.Administrator;
+import com.backend.backend.entity.User;
 import com.backend.backend.entity.Customer;
 import com.backend.backend.entity.Product;
-import com.backend.backend.repository.AdministratorRepository;
+import com.backend.backend.repository.UserRepository;
 import com.backend.backend.repository.CustomerRepository;
 import com.backend.backend.repository.ProductRepository;
 import com.backend.backend.util.SlugUtil;
@@ -33,7 +33,7 @@ public class DevTestDataSeeder implements CommandLineRunner {
 
     private final ProductRepository productRepo;
     private final CustomerRepository customerRepo;
-    private final AdministratorRepository administratorRepo;
+    private final UserRepository userRepository;
     private final SeedProperties props;
 
     @Override
@@ -47,7 +47,7 @@ public class DevTestDataSeeder implements CommandLineRunner {
         seedAdministrators();
 
         log.info("Seeding completed: products={}, customers={}, administrators={}",
-                productRepo.count(), customerRepo.count(), administratorRepo.count());
+                productRepo.count(), customerRepo.count(), userRepository.count());
     }
 
     private void seedProducts(Faker faker, int count) {
@@ -124,15 +124,15 @@ public class DevTestDataSeeder implements CommandLineRunner {
 
     private void seedAdministrators() {
         // Create default admin account
-        if (administratorRepo.count() == 0) {
-            Administrator admin = Administrator.builder()
+        if (userRepository.count() == 0) {
+            User admin = User.builder()
                     .username("admin")
                     .email("admin@example.com")
                     .fullName("System Administrator")
                     .build();
             admin.setPassword("admin123"); // This will hash the password
             
-            administratorRepo.save(admin);
+            userRepository.save(admin);
             log.info("Created default administrator: admin/admin123");
         }
     }

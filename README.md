@@ -5,37 +5,73 @@
 > 📖 **Tiếng Việt**: [README_VI.md](README_VI.md) - Vietnamese documentation available
 
 ### 🏗️ **Architecture Highlights:**
+- ✅ **Domain-Driven Design (DDD)** - Clean architecture with bounded contexts
 - ✅ **DTO-First Design** - Complete separation between API contracts and domain entities
 - ✅ **MapStruct Integration** - High-performance compile-time mapping 
 - ✅ **Business Logic** - Automatic inventory management, order processing
 - ✅ **Security** - BCrypt password encryption, input validation
 - ✅ **RESTful APIs** - CRUD + pagination + advanced operations
 - ✅ **Caching Layer** - Spring Cache with Caffeine for 2x performance improvement
+- ✅ **Service-Specific Commands** - Optimized makefile for efficient development
 
 ## Prerequisites
 - Docker Desktop (or Docker Engine + Compose plugin)
 - Make (usually pre-installed on macOS/Linux)
 
 ## Quick Start
+
+### 🚀 **Full Development Environment**
 ```bash
 # 1) Configure environment
 make config    # Interactive configuration manager
 
-# 2) Build and start
+# 2) Start full stack (mysql + backend + frontend)
 make dev-start
 
 # 3) Open the app
 # Backend: http://localhost:${BACKEND_PORT:-8080}
 # Swagger UI: http://localhost:${BACKEND_PORT:-8080}/swagger-ui/index.html
+# Frontend: http://localhost:${FRONTEND_PORT:-3000}
 ```
 
-To stop:
+### ⚡ **Service-Specific Development**
 ```bash
-make down
+# Backend development only (API + Database)
+make dev-backend
+
+# API development only (Backend + Database, no frontend)
+make dev-api
+
+# Check all services status
+make status
+
+# Restart specific service
+make backend-restart    # Restart backend only
+make frontend-restart   # Restart frontend only
+make db-restart         # Restart database only
 ```
 
-Reset all data (recreate DB volume) and rebuild:
+### 🚀 **Speed-Optimized Development (Recommended)**
 ```bash
+# ⚡ FASTEST: Hot reload (no build, ~5 seconds)
+make dev-hot-reload     # For configuration changes
+
+# 🔄 FAST: Incremental build (~30 seconds)  
+make dev-code-change    # For Java code changes
+
+# 🚀 MEDIUM: Quick restart (~45 seconds)
+make dev-quick-restart  # For dependency changes
+
+# 📊 Show optimization tips
+make docker-optimize    # Compare build speeds and get recommendations
+```
+
+### 🛑 **Stop & Cleanup**
+```bash
+# Stop all services
+make dev-stop
+
+# Clean up and reset (recreate DB volume)
 make clean
 make dev-start
 ```
@@ -95,6 +131,60 @@ make config-restore BACKUP=.env.backup.20240907_113905
 make config-clean-backups
 ```
 
+## 🏗️ Domain-Driven Design (DDD) Architecture
+
+### **Bounded Contexts**
+The application is organized into clear bounded contexts following DDD principles:
+
+```
+com.backend.backend/
+├── shared/                        # Shared Kernel
+│   ├── domain/
+│   │   ├── valueobject/           # Value Objects (Money, Slug, Email)
+│   │   ├── entity/                 # Base Entity (BaseEntity)
+│   │   └── exception/              # Domain Exceptions
+│   └── infrastructure/
+│       ├── util/
+│       └── constant/
+├── identity/                      # Identity & Access Management Context
+│   ├── domain/                    # Domain layer
+│   ├── application/               # Application layer
+│   ├── infrastructure/            # Infrastructure layer
+│   └── presentation/              # Presentation layer
+├── customer/                      # Customer Management Context
+├── catalog/                       # Product Catalog Context
+├── order/                         # Order Management Context
+└── infrastructure/                # Cross-cutting Infrastructure
+    ├── config/                    # Configuration
+    ├── web/                       # Web infrastructure
+    └── exception/                 # Global exception handling
+```
+
+### **DDD Development Commands**
+```bash
+# Validate DDD structure
+make ddd-validate
+
+# Check migration progress
+make ddd-migration-status
+
+# DDD-specific development
+make ddd-compile        # Fast Java compilation
+make ddd-quick-test     # Quick test execution
+make ddd-check          # Code quality check
+make ddd-clean-build    # Clean build for refactoring
+make ddd-restart-backend # Restart backend for DDD changes
+make ddd-logs           # Watch backend logs during DDD development
+make ddd-status         # Check DDD development status
+```
+
+### **Migration Phases**
+- ✅ **Phase 1**: Foundation Setup (Shared Kernel, Infrastructure)
+- ✅ **Phase 2**: Identity Context (Authentication & Authorization)
+- ✅ **Phase 3**: Business Context (Domain Services & Business Logic)
+- 🔄 **Phase 4**: Advanced Features (Business Logic Endpoints, Enhanced Validation)
+- 🔄 **Phase 5**: Production Readiness (Monitoring, Performance Optimization)
+
 ## Project Structure
 ```
 springboot-mysql-docker/
@@ -111,23 +201,37 @@ springboot-mysql-docker/
 │  ├─ build.gradle                   # MapStruct + Lombok + Spring Boot
 │  ├─ gradle/, gradlew, settings.gradle
 │  └─ src/main/java/com/backend/backend/
-│     ├─ BackendApplication.java
-│     ├─ config/
-│     │  ├─ OpenApiConfig.java       # Dynamic server URL from .env
-│     │  ├─ SecurityConfig.java      # BCrypt password encoder
-│     │  ├─ SeedProperties.java      # Data seeding configuration
-│     │  └─ AppConfig.java           # Configuration properties binding
-│     ├─ dto/                        # DTO-first design
-│     │  ├─ common/PageResponse.java
-│     │  ├─ product/                 # Use-case driven DTOs
-│     │  ├─ customer/, supplier/, administrator/
-│     │  ├─ order/, orderitem/, stockentry/
-│     │  └─ ...CreateRequest, ...UpdateRequest, ...Response
-│     ├─ entity/                     # JPA entities with Lombok
-│     │  ├─ base/AuditableEntity.java # Base class with audit fields
-│     │  ├─ Product.java, Supplier.java, Customer.java
+│     ├─ BackendApplication.java      # Main application class
+│     ├─ shared/                      # 🏗️ Shared Kernel (DDD)
+│     │  ├─ domain/
+│     │  │  ├─ valueobject/           # Value Objects (Money, Slug, Email)
+│     │  │  ├─ entity/                 # Base Entity (BaseEntity)
+│     │  │  └─ exception/              # Domain Exceptions
+│     │  └─ infrastructure/
+│     ├─ infrastructure/              # 🏗️ Cross-cutting Infrastructure
+│     │  ├─ config/                   # Configuration (Security, Cache, CORS)
+│     │  ├─ web/                      # Web infrastructure (Filters, Logging)
+│     │  └─ exception/                # Global exception handling
+│     ├─ identity/                    # 🏗️ Identity & Access Management Context
+│     ├─ customer/                    # 🏗️ Customer Management Context
+│     ├─ catalog/                     # 🏗️ Product Catalog Context
+│     ├─ order/                       # 🏗️ Order Management Context
+│     ├─ config/                      # Configuration classes
+│     │  ├─ CacheConfig.java          # Caffeine cache configuration
+│     │  ├─ CacheNames.java           # Cache name constants
+│     │  └─ SecurityConfig.java       # Spring Security configuration
+│     ├─ dto/                         # Data Transfer Objects (organized by entity)
+│     │  ├─ common/                   # Shared DTOs (PageResponse, etc.)
+│     │  ├─ customer/                 # Customer DTOs
+│     │  ├─ order/                    # Order DTOs
+│     │  ├─ orderitem/                # OrderItem DTOs
+│     │  ├─ product/                  # Product DTOs
+│     │  ├─ supplier/                 # Supplier DTOs
+│     │  └─ user/                     # User DTOs
+│     ├─ entity/                      # Domain entities
 │     │  ├─ Order.java, OrderItem.java, StockEntry.java
-│     │  └─ Administrator.java
+│     │  ├─ Product.java, Customer.java, Supplier.java
+│     │  └─ User.java (with Role enum)
 │     ├─ mapper/                     # MapStruct mappers
 │     │  ├─ ProductMapper.java, CustomerMapper.java
 │     │  ├─ OrderMapper.java, StockEntryMapper.java
@@ -138,16 +242,25 @@ springboot-mysql-docker/
 │     ├─ bootstrap/                  # Application startup components
 │     │  └─ DevTestDataSeeder.java   # Profile-based data seeding
 │     ├─ service/                    # Business logic layer
-│     │  ├─ ProductService.java      # Inventory management
+│     │  ├─ ProductService.java      # Inventory management with business logic
 │     │  ├─ OrderService.java        # Complex order processing
-│     │  └─ ...Service.java          # Stock updates, totals calculation
+│     │  ├─ CustomerService.java     # Customer management with business logic
+│     │  ├─ SupplierService.java     # Supplier management with business logic
+│     │  ├─ StockEntryService.java   # Stock management with business logic
+│     │  ├─ UserService.java         # User management with authentication
+│     │  ├─ JwtTokenService.java      # JWT token management
+│     │  └─ PasswordService.java     # Password hashing and validation
 │     ├─ util/                       # Utility classes
 │     │  ├─ SlugUtil.java            # Slug generation and validation
 │     │  └─ PageMapper.java          # Pagination utility
 │     ├─ controller/                 # RESTful API layer
-│     │  ├─ ProductController.java   # /api/v1/products
+│     │  ├─ ProductController.java   # /api/v1/products (with business logic endpoints)
 │     │  ├─ OrderController.java     # /api/v1/orders
-│     │  └─ ...Controller.java       # CRUD + pagination + custom endpoints
+│     │  ├─ CustomerController.java  # /api/v1/customers
+│     │  ├─ SupplierController.java  # /api/v1/suppliers
+│     │  ├─ UserController.java      # /api/v1/users
+│     │  ├─ AuthController.java      # /auth (authentication endpoints)
+│     │  └─ ...Controller.java       # CRUD + pagination + business logic endpoints
 │     └─ exception/                  # Global error handling
 │        ├─ GlobalExceptionHandler.java
 │        └─ ResourceNotFoundException.java
@@ -155,7 +268,10 @@ springboot-mysql-docker/
 │  ├─ V1__init.sql                   # Flyway schema migration
 │  ├─ V2__seed_base.sql              # Flyway seed data migration
 │  ├─ V3__add_slug_products_customers.sql # Slug support migration
-│  └─ V4__add_audit_and_soft_delete.sql   # Audit fields and soft delete migration
+│  ├─ V4__add_audit_and_soft_delete.sql   # Audit fields and soft delete migration
+│  ├─ V5__add_stock_entries.sql      # Stock management migration
+│  ├─ V6__add_users_table.sql       # User authentication migration
+│  └─ V7__add_user_role.sql         # User role enum migration
 ├─ docs/                             # Documentation
 │  ├─ README_day1.md, README_day2.md
 │  ├─ README_day3.md, README_day4.md
@@ -190,23 +306,42 @@ springboot-mysql-docker/
 ### **Modern RESTful Endpoints** with DTO-driven design:
 
 #### **Core Resources** (Full CRUD + Pagination):
-- 🛍️ **Products**: `/api/v1/products` - Inventory management with stock tracking
-- 👥 **Customers**: `/api/v1/customers` - Customer management
-- 🏪 **Suppliers**: `/api/v1/suppliers` - Supplier relationships  
-- 👨‍💼 **Administrators**: `/api/v1/administrators` - User management with secure passwords
-- 📦 **Stock Entries**: `/api/v1/stock-entries` - Inventory transactions
-- 📋 **Orders**: `/api/v1/orders` - Complex order processing
+- 🛍️ **Products**: `/api/v1/products` - Inventory management with stock tracking + business logic
+- 👥 **Customers**: `/api/v1/customers` - Customer management + business logic
+- 🏪 **Suppliers**: `/api/v1/suppliers` - Supplier relationships + business logic
+- 👨‍💼 **Users**: `/api/v1/users` - User management with secure passwords + authentication
+- 📦 **Stock Entries**: `/api/v1/stock-entries` - Inventory transactions + business logic
+- 📋 **Orders**: `/api/v1/orders` - Complex order processing + business logic
 - 📦 **Order Items**: `/api/v1/order-items` - Individual order line items
+- 🔐 **Authentication**: `/auth/*` - JWT-based authentication endpoints
 
 #### **Advanced Features**:
 - ✅ **Pagination**: `/page` endpoints with sorting
 - ✅ **Partial Updates**: PATCH operations with selective field updates  
-- ✅ **Business Logic**: Automatic stock management and calculations
+- ✅ **Business Logic**: Domain services with comprehensive business rules
+- ✅ **Authentication**: JWT-based authentication with role-based access control
 - ✅ **Validation**: Comprehensive input validation with meaningful errors
 - ✅ **Security**: Password encryption and sensitive data protection
 - ✅ **Slug Access**: Dual access patterns with both ID and slug-based endpoints
 - ✅ **Soft Delete**: Records are marked as deleted but remain in database
 - ✅ **Audit Trail**: Automatic timestamp management for all entities
+- ✅ **Caching**: Spring Cache with Caffeine for performance optimization
+
+### **Business Logic Features**:
+
+#### **Domain Services with Business Rules**:
+- ✅ **ProductService**: Stock management, price updates, low stock alerts, product statistics
+- ✅ **CustomerService**: Customer validation, search functionality, contact management
+- ✅ **SupplierService**: Supplier validation, active supplier tracking, contact management  
+- ✅ **OrderService**: Order calculations, customer order history, order statistics
+- ✅ **StockEntryService**: Stock transaction management, product stock tracking
+- ✅ **UserService**: Authentication, password management, role-based access control
+
+#### **Business Logic Endpoints**:
+- 📊 **Statistics**: `/api/v1/products/stats`, `/api/v1/customers/stats`, `/api/v1/orders/stats`
+- 🔍 **Search**: `/api/v1/products/search`, `/api/v1/customers/search`, `/api/v1/suppliers/search`
+- 📈 **Analytics**: `/api/v1/products/low-stock`, `/api/v1/orders/by-date-range`
+- 🎯 **Business Operations**: Stock reservations, order calculations, inventory management
 
 ### **Example API Usage**:
 
@@ -272,10 +407,10 @@ curl -X POST http://localhost:${BACKEND_PORT:-8080}/api/v1/stock-entries \
   -d '{"productId": 1, "supplierId": 1, "quantity": 50}'
 ```
 
-#### **Secure Administration**:
+#### **Authentication & User Management**:
 ```bash
-# Create admin with encrypted password
-curl -X POST http://localhost:${BACKEND_PORT:-8080}/api/v1/administrators \
+# Register new user
+curl -X POST http://localhost:${BACKEND_PORT:-8080}/auth/register \
   -H 'Content-Type: application/json' \
   -d '{
     "username": "admin1", 
@@ -284,12 +419,24 @@ curl -X POST http://localhost:${BACKEND_PORT:-8080}/api/v1/administrators \
     "fullName": "System Administrator"
   }'
 
-# Response excludes password for security
+# Login and get JWT token
+curl -X POST http://localhost:${BACKEND_PORT:-8080}/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "username": "admin1",
+    "password": "securepass123"
+  }'
+
+# Response includes JWT token
 {
-  "id": 1,
-  "username": "admin1",
-  "email": "admin@company.com", 
-  "fullName": "System Administrator"
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": 1,
+    "username": "admin1",
+    "email": "admin@company.com", 
+    "fullName": "System Administrator",
+    "role": "USER"
+  }
 }
 ```
 
@@ -318,6 +465,24 @@ make down
 # Reset volumes (wipe DB) and rebuild
 make clean
 make dev-start
+```
+
+### ⚡ **Speed-Optimized Operations:**
+```bash
+# 🚀 FASTEST: Hot reload (~5 seconds)
+make dev-hot-reload     # Configuration changes only
+
+# 🔄 FAST: Incremental build (~30 seconds)
+make dev-code-change    # Java code changes
+
+# 🚀 MEDIUM: Quick restart (~45 seconds)  
+make dev-quick-restart  # Dependency changes
+
+# 📊 Build speed comparison and tips
+make docker-optimize    # Show optimization recommendations
+
+# ⚠️ SLOW: Full rebuild (~3-5 minutes) - Use only when necessary
+make backend-rebuild    # Clean build with no-cache
 ```
 
 ### 🎯 **Configuration Management:**
@@ -361,6 +526,34 @@ make dev-status
 # View all available commands
 make help
 ```
+
+## 🚀 Docker Build Optimization
+
+### **Build Speed Comparison:**
+| Command | Time | Use Case | Description |
+|---------|------|----------|-------------|
+| `make dev-hot-reload` | ~5 seconds | Config changes | No build, just restart |
+| `make dev-code-change` | ~30 seconds | Java code changes | Incremental build |
+| `make dev-quick-restart` | ~45 seconds | Dependency changes | Build + restart |
+| `make backend-rebuild` | ~3-5 minutes | Cache issues | Clean build (no-cache) |
+
+### **Optimization Tips:**
+```bash
+# Show detailed optimization guide
+make docker-optimize
+
+# Use appropriate command for your changes:
+# - Configuration (.env, application.yml) → dev-hot-reload
+# - Java code changes → dev-code-change  
+# - Dependencies (build.gradle) → dev-quick-restart
+# - Cache issues → backend-rebuild (only when necessary)
+```
+
+### **Why These Commands Are Faster:**
+- **Docker Layer Caching**: Incremental builds reuse cached layers
+- **Smart Build Strategy**: Only rebuild what changed
+- **No-Cache Avoidance**: `--no-cache` forces complete rebuild
+- **Targeted Operations**: Specific commands for specific changes
 
 ## Troubleshooting
 
@@ -519,6 +712,115 @@ make help
   - ProductService and SupplierService caching
   - Cache eviction on create/update/delete operations
   - Configurable TTL and cache size via environment variables
+
+### ✅ Day 18 — DDD Architecture & Service-Specific Commands 🏗️⚡️
+* **Goal:** Implement Domain-Driven Design architecture and optimize makefile with service-specific commands.
+* **Criteria:** Clean architecture with bounded contexts, optimized development workflows, efficient service management.
+* **🎯 COMPLETED:** Complete DDD foundation setup with optimized makefile for efficient development
+* **Features:**
+  - Domain-Driven Design architecture with bounded contexts
+  - Shared kernel with value objects (Money, Slug, Email)
+  - Infrastructure layer separation
+  - Service-specific makefile commands (75 optimized commands)
+  - DDD development workflow commands
+  - Legacy command aliases for backward compatibility
+
+## ⚡ Service-Specific Commands
+
+### **Development Workflows**
+```bash
+# Full development environment
+make dev-start      # Start mysql + backend + frontend
+make dev-backend    # Start backend + database only
+make dev-api        # Start API development (no frontend)
+make dev-stop       # Stop all services
+make dev-restart    # Restart all services
+```
+
+### **Speed-Optimized Development**
+```bash
+# ⚡ FASTEST: Hot reload (~5 seconds)
+make dev-hot-reload     # Configuration changes only
+
+# 🔄 FAST: Incremental build (~30 seconds)
+make dev-code-change    # Java code changes
+
+# 🚀 MEDIUM: Quick restart (~45 seconds)
+make dev-quick-restart  # Dependency changes
+
+# 📊 Optimization tips and speed comparison
+make docker-optimize    # Show build speed recommendations
+```
+
+### **Service Management**
+```bash
+# Backend commands (speed-optimized)
+make backend-build      # Build backend only (with cache)
+make backend-quick-build # Quick build backend (incremental, fast)
+make backend-rebuild    # Rebuild backend (no-cache) - SLOW
+make backend-force-rebuild # Force rebuild (clean + no-cache) - VERY SLOW
+make backend-start      # Start backend only
+make backend-stop       # Stop backend only
+make backend-restart    # Restart backend only
+make backend-quick-restart # Quick restart (build + restart, fast)
+make backend-dev-restart # Development restart (optimized for dev)
+make backend-status     # Check backend status
+make backend-logs       # Watch backend logs
+
+# Frontend commands
+make frontend-build     # Build frontend only
+make frontend-rebuild   # Rebuild frontend (no-cache)
+make frontend-start     # Start frontend only
+make frontend-stop      # Stop frontend only
+make frontend-restart   # Restart frontend only
+make frontend-status    # Check frontend status
+make frontend-logs      # Watch frontend logs
+
+# Database commands
+make db-build           # Build database only
+make db-rebuild         # Rebuild database (no-cache)
+make db-start           # Start database only
+make db-stop            # Stop database only
+make db-restart         # Restart database only
+make db-status          # Check database status
+make db-logs            # Watch database logs
+
+# Combined services
+make services-build     # Build all services
+make services-rebuild   # Rebuild all services (no-cache)
+make services-start     # Start all services
+make services-stop      # Stop all services
+make services-restart   # Restart all services
+make status             # Check all services status
+```
+
+### **DDD Development Commands**
+```bash
+# DDD structure validation
+make ddd-validate           # Validate DDD structure
+make ddd-migration-status   # Show migration progress
+
+# DDD development workflow
+make ddd-compile            # Fast Java compilation
+make ddd-quick-test         # Quick test execution
+make ddd-check              # Code quality check
+make ddd-clean-build        # Clean build for refactoring
+make ddd-restart-backend    # Restart backend for DDD changes
+make ddd-logs               # Watch backend logs during DDD development
+make ddd-status             # Check DDD development status
+```
+
+### **Legacy Aliases (Backward Compatibility)**
+```bash
+make up         # → services-start
+make down       # → services-stop
+make restart    # → services-restart
+make rebuild    # → services-rebuild
+make ps         # → status
+make health     # → status
+make sh-app     # → shell-backend
+make sh-db      # → shell-db
+```
   - 1.3-2x performance improvement on cached endpoints
   - Comprehensive testing and monitoring
 
@@ -534,31 +836,35 @@ make help
 - 🛡️ **Input Validation**: Bean Validation with global error handling
 - 🏗️ **DTO Architecture**: Complete separation of API contracts from domain entities
 - 🚀 **MapStruct Integration**: High-performance compile-time mapping
-- 💼 **Business Logic**: Inventory management, order processing, automatic calculations
+- 💼 **Business Logic**: Domain services with comprehensive business rules and validation
 - 🔐 **JWT Security**: Stateless authentication with JWT tokens, role-based access control, and protected API endpoints
 - 🌐 **CORS Configuration**: Environment-based CORS with endpoint-specific rules and comprehensive validation
 - 🚦 **Rate Limiting**: Bucket4j-based rate limiting with isolated buckets per endpoint type (Public/API/Auth)
 - ⚡️ **Caching Layer**: Spring Cache with Caffeine for 2x performance improvement on read operations
-- 📊 **APIs**: 50+ RESTful endpoints with pagination, sorting, filtering and search
+- 📊 **APIs**: 50+ RESTful endpoints with pagination, sorting, filtering and business logic
 - 📄 **Pagination**: PageResponse<T> standard with metadata, PageMapper utility
 - 📖 **Documentation**: Swagger/OpenAPI with dynamic server URLs and detailed parameter descriptions
-- 🛫 **Database Migrations**: Flyway-based schema management with automated migrations
+- 🛫 **Database Migrations**: Flyway-based schema management with automated migrations (V1-V7)
 - 🌱 **Data Seeding**: Profile-based seeding with DataFaker, idempotent seeding, configurable quantities
 - 🔗 **Slug System**: Global slug support for Products and Customers with dual access patterns
 - 🗑️ **Soft Delete & Auditing**: Complete audit trail with automatic timestamp management and soft delete functionality
+- 🏗️ **Clean Architecture**: Project structure cleanup with organized packages and consistent naming
+- ⚡ **Build Optimization**: Speed-optimized Docker commands with incremental builds and smart caching
 
 ### **📈 Technical Metrics:**
 - **7 Domain Entities** with Lombok integration and AuditableEntity base class
-- **21 DTOs** designed with use-case patterns
+- **21 DTOs** designed with use-case patterns and organized by entity
 - **7 MapStruct Mappers** with relationship handling
 - **1 PageMapper Utility** for pagination standardization
 - **1 SlugUtil Utility** for slug generation and validation
 - **1 AuditableEntity Base Class** with automatic timestamp management
-- **14 Controllers** with consistent RESTful design and Swagger docs
-- **4 Flyway Migrations** with automated schema management and audit fields
+- **8 Controllers** with consistent RESTful design and Swagger docs (including AuthController)
+- **7 Flyway Migrations** with automated schema management and audit fields (V1-V7)
 - **1 Data Seeder** with profile-based configuration and idempotent seeding
 - **1 Configuration Manager Script** with interactive interface and backup management
 - **1 Centralized Configuration System** with automatic synchronization across all components
+- **6 Domain Services** with comprehensive business logic and validation
+- **2 Security Services** (JwtTokenService, PasswordService) for authentication
 - **Zero Manual Mapping** - All automated with type safety
 - **Unified Pagination** - All list endpoints use PageResponse<T>
 - **Dual Access Patterns** - ID and slug-based API endpoints
@@ -567,6 +873,8 @@ make help
 - **Single Source of Truth** - Schema managed in Flyway migrations, Configuration in .env
 - **Automated Data Seeding** - Development/test environments ready with sample data
 - **Smart Backup Management** - Automated backup with folder organization and cleanup
+- **Clean Project Structure** - Organized packages with consistent naming conventions
+- **Speed-Optimized Build System** - 4-tier build commands (5s-5min) with smart Docker caching
 
 **🌟 Ready for production deployment with enterprise-grade patterns!**
 

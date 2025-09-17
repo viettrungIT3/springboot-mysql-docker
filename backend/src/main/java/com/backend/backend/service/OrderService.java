@@ -20,29 +20,24 @@ import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class OrderService {
 
     private final OrderRepository orderRepository;
     private final CustomerRepository customerRepository;
     private final ProductRepository productRepository;
     private final OrderMapper orderMapper;
-
-    public OrderService(OrderRepository orderRepository,
-            CustomerRepository customerRepository,
-            ProductRepository productRepository,
-            OrderMapper orderMapper) {
-        this.orderRepository = orderRepository;
-        this.customerRepository = customerRepository;
-        this.productRepository = productRepository;
-        this.orderMapper = orderMapper;
-    }
 
     @Transactional
     @Caching(evict = {
@@ -192,7 +187,7 @@ public class OrderService {
             productRepository.save(product);
         }
 
-        entity.markAsDeleted();
+        entity.delete();
         orderRepository.save(entity);
     }
 
@@ -245,5 +240,226 @@ public class OrderService {
 
         Order saved = orderRepository.save(order);
         return orderMapper.toResponse(saved);
+    }
+    
+    // ==================== BUSINESS LOGIC METHODS ====================
+    
+    /**
+     * Calculate order total amount
+     */
+    @Transactional(readOnly = true)
+    public BigDecimal calculateOrderTotal(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng với ID: " + orderId));
+        
+        return order.getItems().stream()
+                .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+    
+    /**
+     * Get order statistics for a customer
+     */
+    @Transactional(readOnly = true)
+    public CustomerOrderStats getCustomerOrderStats(Long customerId) {
+        if (!customerRepository.existsById(customerId)) {
+            throw new ResourceNotFoundException("Không tìm thấy khách hàng với ID: " + customerId);
+        }
+        
+        List<Order> orders = orderRepository.findByCustomerId(customerId);
+        
+        long totalOrders = orders.size();
+        BigDecimal totalSpent = orders.stream()
+                .map(Order::getTotalAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        
+        BigDecimal averageOrderValue = totalOrders > 0 
+                ? totalSpent.divide(BigDecimal.valueOf(totalOrders), 2, BigDecimal.ROUND_HALF_UP)
+                : BigDecimal.ZERO;
+        
+        return CustomerOrderStats.builder()
+                .customerId(customerId)
+                .totalOrders(totalOrders)
+                .totalSpent(totalSpent)
+                .averageOrderValue(averageOrderValue)
+                .build();
+    }
+    
+    /**
+     * Get order statistics for all orders
+     */
+    @Transactional(readOnly = true)
+    public OrderStats getOrderStats() {
+        List<Order> allOrders = orderRepository.findAll();
+        
+        long totalOrders = allOrders.size();
+        BigDecimal totalRevenue = allOrders.stream()
+                .map(Order::getTotalAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        
+        BigDecimal averageOrderValue = totalOrders > 0 
+                ? totalRevenue.divide(BigDecimal.valueOf(totalOrders), 2, BigDecimal.ROUND_HALF_UP)
+                : BigDecimal.ZERO;
+        
+        // Count orders by date range (last 30 days)
+        OffsetDateTime thirtyDaysAgo = OffsetDateTime.now().minusDays(30);
+        long recentOrders = allOrders.stream()
+                .filter(order -> order.getOrderDate() != null && order.getOrderDate().isAfter(thirtyDaysAgo))
+                .count();
+        
+        return OrderStats.builder()
+                .totalOrders(totalOrders)
+                .totalRevenue(totalRevenue)
+                .averageOrderValue(averageOrderValue)
+                .recentOrders(recentOrders)
+                .build();
+    }
+    
+    /**
+     * Find orders by date range
+     */
+    @Transactional(readOnly = true)
+    public List<OrderResponse> findOrdersByDateRange(OffsetDateTime startDate, OffsetDateTime endDate) {
+        List<Order> orders = orderRepository.findByOrderDateBetween(startDate, endDate);
+        return orders.stream()
+                .map(orderMapper::toResponse)
+                .toList();
+    }
+    
+    /**
+     * Find orders by total amount range
+     */
+    @Transactional(readOnly = true)
+    public List<OrderResponse> findOrdersByAmountRange(BigDecimal minAmount, BigDecimal maxAmount) {
+        List<Order> orders = orderRepository.findByTotalAmountBetween(minAmount, maxAmount);
+        return orders.stream()
+                .map(orderMapper::toResponse)
+                .toList();
+    }
+    
+    /**
+     * Remove item from order
+     */
+    @Transactional
+    @Caching(evict = {
+        @CacheEvict(cacheNames = CacheNames.ORDER_LIST, allEntries = true),
+        @CacheEvict(cacheNames = CacheNames.ORDER_BY_ID, key = "#orderId"),
+        @CacheEvict(cacheNames = CacheNames.ORDER_BY_CUSTOMER, allEntries = true)
+    })
+    public OrderResponse removeItem(Long orderId, Long productId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng với ID: " + orderId));
+        
+        OrderItem itemToRemove = order.getItems().stream()
+                .filter(item -> item.getProduct().getId().equals(productId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm trong đơn hàng"));
+        
+        // Release stock
+        Product product = itemToRemove.getProduct();
+        product.setQuantityInStock(product.getQuantityInStock() + itemToRemove.getQuantity());
+        productRepository.save(product);
+        
+        // Remove item
+        order.getItems().remove(itemToRemove);
+        
+        // Recalculate total
+        BigDecimal total = order.getItems().stream()
+                .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        order.setTotalAmount(total);
+        
+        Order saved = orderRepository.save(order);
+        log.info("Removed product {} from order {} (ID: {})", product.getName(), orderId, productId);
+        return orderMapper.toResponse(saved);
+    }
+    
+    /**
+     * Update item quantity in order
+     */
+    @Transactional
+    @Caching(evict = {
+        @CacheEvict(cacheNames = CacheNames.ORDER_LIST, allEntries = true),
+        @CacheEvict(cacheNames = CacheNames.ORDER_BY_ID, key = "#orderId"),
+        @CacheEvict(cacheNames = CacheNames.ORDER_BY_CUSTOMER, allEntries = true)
+    })
+    public OrderResponse updateItemQuantity(Long orderId, Long productId, Integer newQuantity) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng với ID: " + orderId));
+        
+        OrderItem item = order.getItems().stream()
+                .filter(orderItem -> orderItem.getProduct().getId().equals(productId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm trong đơn hàng"));
+        
+        Product product = item.getProduct();
+        Integer oldQuantity = item.getQuantity();
+        Integer quantityDifference = newQuantity - oldQuantity;
+        
+        // Check stock availability
+        if (product.getQuantityInStock() < quantityDifference) {
+            throw new IllegalArgumentException("Không đủ hàng trong kho. Còn lại: " + product.getQuantityInStock() + 
+                    ", yêu cầu thêm: " + quantityDifference);
+        }
+        
+        // Update stock
+        product.setQuantityInStock(product.getQuantityInStock() - quantityDifference);
+        productRepository.save(product);
+        
+        // Update item quantity
+        item.setQuantity(newQuantity);
+        
+        // Recalculate total
+        BigDecimal total = order.getItems().stream()
+                .map(orderItem -> orderItem.getPrice().multiply(BigDecimal.valueOf(orderItem.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        order.setTotalAmount(total);
+        
+        Order saved = orderRepository.save(order);
+        log.info("Updated quantity for product {} in order {} from {} to {}", 
+                product.getName(), orderId, oldQuantity, newQuantity);
+        return orderMapper.toResponse(saved);
+    }
+    
+    /**
+     * Validate order before creation
+     */
+    @Transactional(readOnly = true)
+    public void validateOrderData(OrderCreateRequest request) {
+        if (request.getCustomerId() != null && !customerRepository.existsById(request.getCustomerId())) {
+            throw new IllegalArgumentException("Không tìm thấy khách hàng với ID: " + request.getCustomerId());
+        }
+        
+        if (request.getItems() != null) {
+            for (OrderCreateRequest.OrderItemCreateRequest item : request.getItems()) {
+                if (!productRepository.existsById(item.getProductId())) {
+                    throw new IllegalArgumentException("Không tìm thấy sản phẩm với ID: " + item.getProductId());
+                }
+                
+                if (item.getQuantity() <= 0) {
+                    throw new IllegalArgumentException("Số lượng sản phẩm phải lớn hơn 0");
+                }
+            }
+        }
+    }
+    
+    // ==================== INNER CLASSES ====================
+    
+    @lombok.Data
+    @lombok.Builder
+    public static class CustomerOrderStats {
+        private Long customerId;
+        private long totalOrders;
+        private BigDecimal totalSpent;
+        private BigDecimal averageOrderValue;
+    }
+    
+    @lombok.Data
+    @lombok.Builder
+    public static class OrderStats {
+        private long totalOrders;
+        private BigDecimal totalRevenue;
+        private BigDecimal averageOrderValue;
+        private long recentOrders;
     }
 }

@@ -6,6 +6,7 @@ import com.backend.backend.dto.product.ProductCreateRequest;
 import com.backend.backend.dto.product.ProductResponse;
 import com.backend.backend.dto.product.ProductUpdateRequest;
 import com.backend.backend.service.ProductService;
+import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.*;
@@ -51,6 +52,15 @@ public class ProductController {
             @Parameter(description = "ID của sản phẩm", example = "1") @PathVariable Long id,
             @Valid @RequestBody ProductUpdateRequest request) {
         return ResponseEntity.ok(productService.update(id, request));
+    }
+
+    @Operation(summary = "Get low stock products", description = "Lấy danh sách sản phẩm có số lượng tồn kho thấp", responses = {
+            @ApiResponse(responseCode = "200", description = "Lấy danh sách thành công", content = @Content(schema = @Schema(implementation = ProductResponse.class)))
+    })
+    @GetMapping("/low-stock")
+    public ResponseEntity<List<ProductResponse>> getLowStockProducts(
+            @RequestParam(defaultValue = "5") int threshold) {
+        return ResponseEntity.ok(productService.findLowStockProducts(threshold));
     }
 
     @Operation(summary = "Get product by ID", description = "Lấy thông tin chi tiết của một sản phẩm", responses = {

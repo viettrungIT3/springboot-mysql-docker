@@ -2,8 +2,8 @@ package com.backend.backend.service;
 
 import com.backend.backend.dto.administrator.LoginRequest;
 import com.backend.backend.dto.administrator.LoginResponse;
-import com.backend.backend.entity.Administrator;
-import com.backend.backend.repository.AdministratorRepository;
+import com.backend.backend.entity.User;
+import com.backend.backend.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.Base64;
@@ -11,35 +11,35 @@ import java.util.Base64;
 @Service
 public class AuthenticationService {
 
-    private final AdministratorRepository administratorRepository;
+    private final UserRepository userRepository;
 
-    public AuthenticationService(AdministratorRepository administratorRepository) {
-        this.administratorRepository = administratorRepository;
+    public AuthenticationService(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
     public LoginResponse authenticate(LoginRequest request) {
         // Find administrator by username
-        Administrator admin = administratorRepository.findByUsername(request.getUsername())
+        User user = userRepository.findByUsername(request.getUsername())
                 .orElse(null);
 
-        if (admin == null) {
+        if (user == null) {
             return LoginResponse.error("Tên đăng nhập hoặc mật khẩu không đúng");
         }
 
         // Check password
-        if (!admin.checkPassword(request.getPassword())) {
+        if (!user.checkPassword(request.getPassword())) {
             return LoginResponse.error("Tên đăng nhập hoặc mật khẩu không đúng");
         }
 
         // Generate simple token (Base64 encoded username:password for now)
         // TODO: Replace with JWT in future iterations
-        String token = generateSimpleToken(admin.getUsername());
+        String token = generateSimpleToken(user.getUsername());
 
         return LoginResponse.success(
                 token,
-                admin.getUsername(),
-                admin.getEmail(),
-                admin.getFullName()
+                user.getUsername(),
+                user.getEmail(),
+                user.getFullName()
         );
     }
 
@@ -50,21 +50,21 @@ public class AuthenticationService {
             if (parts.length != 2) return false;
 
             String username = parts[0];
-            Administrator admin = administratorRepository.findByUsername(username).orElse(null);
-            return admin != null;
+            User user = userRepository.findByUsername(username).orElse(null);
+            return user != null;
         } catch (Exception e) {
             return false;
         }
     }
 
-    public Administrator getAdministratorFromToken(String token) {
+    public User getUserFromToken(String token) {
         try {
             String decoded = new String(Base64.getDecoder().decode(token));
             String[] parts = decoded.split(":");
             if (parts.length != 2) return null;
 
             String username = parts[0];
-            return administratorRepository.findByUsername(username).orElse(null);
+            return userRepository.findByUsername(username).orElse(null);
         } catch (Exception e) {
             return null;
         }

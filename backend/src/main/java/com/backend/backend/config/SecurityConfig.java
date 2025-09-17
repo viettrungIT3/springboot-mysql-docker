@@ -1,5 +1,6 @@
 package com.backend.backend.config;
 
+import com.backend.backend.infrastructure.config.security.RateLimitFilter;
 import com.backend.backend.util.CorsUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
