@@ -161,7 +161,7 @@ public class OrderItemService {
         productRepository.save(product);
 
         Order order = entity.getOrder();
-        entity.markAsDeleted();
+        entity.delete();
         orderItemRepository.save(entity);
 
         // Recalculate order total

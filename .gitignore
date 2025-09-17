@@ -8,3 +8,6 @@ backend/src/test/resources/test-config.properties
 # Test coverage
 backend/build/reports/jacoco/test/html/index.html
 backend/build/reports/tests/test/
+
+# Other files
+TODO.txt

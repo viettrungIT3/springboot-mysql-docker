@@ -17,19 +17,20 @@ import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class ProductService {
 
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
-
-    public ProductService(ProductRepository productRepository, ProductMapper productMapper) {
-        this.productRepository = productRepository;
-        this.productMapper = productMapper;
-    }
 
     @Transactional
     @Caching(evict = {
@@ -127,10 +128,166 @@ public class ProductService {
     public void delete(Long id) {
         Product entity = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + id));
-        entity.markAsDeleted();
+        entity.delete();
         productRepository.save(entity);
     }
 
+    // ==================== BUSINESS LOGIC METHODS ====================
+    
+    /**
+     * Check if product is in stock
+     */
+    @Transactional(readOnly = true)
+    public boolean isInStock(Long productId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + productId));
+        return product.getQuantityInStock() > 0;
+    }
+    
+    /**
+     * Check if product has sufficient stock
+     */
+    @Transactional(readOnly = true)
+    public boolean hasSufficientStock(Long productId, Integer requiredQuantity) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + productId));
+        return product.getQuantityInStock() >= requiredQuantity;
+    }
+    
+    /**
+     * Reserve stock for an order
+     */
+    @Transactional
+    @Caching(evict = {
+        @CacheEvict(cacheNames = CacheNames.PRODUCT_LIST, allEntries = true),
+        @CacheEvict(cacheNames = CacheNames.PRODUCT_BY_ID, key = "#productId"),
+        @CacheEvict(cacheNames = CacheNames.PRODUCT_BY_SLUG, allEntries = true)
+    })
+    public void reserveStock(Long productId, Integer quantity) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + productId));
+        
+        if (product.getQuantityInStock() < quantity) {
+            throw new IllegalArgumentException("Không đủ hàng trong kho cho sản phẩm: " + product.getName() +
+                    ". Còn lại: " + product.getQuantityInStock() + ", yêu cầu: " + quantity);
+        }
+        
+        product.setQuantityInStock(product.getQuantityInStock() - quantity);
+        productRepository.save(product);
+        log.info("Reserved {} units of product {} (ID: {})", quantity, product.getName(), productId);
+    }
+    
+    /**
+     * Release reserved stock (for cancelled orders)
+     */
+    @Transactional
+    @Caching(evict = {
+        @CacheEvict(cacheNames = CacheNames.PRODUCT_LIST, allEntries = true),
+        @CacheEvict(cacheNames = CacheNames.PRODUCT_BY_ID, key = "#productId"),
+        @CacheEvict(cacheNames = CacheNames.PRODUCT_BY_SLUG, allEntries = true)
+    })
+    public void releaseStock(Long productId, Integer quantity) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + productId));
+        
+        product.setQuantityInStock(product.getQuantityInStock() + quantity);
+        productRepository.save(product);
+        log.info("Released {} units of product {} (ID: {})", quantity, product.getName(), productId);
+    }
+    
+    /**
+     * Add stock to product
+     */
+    @Transactional
+    @Caching(evict = {
+        @CacheEvict(cacheNames = CacheNames.PRODUCT_LIST, allEntries = true),
+        @CacheEvict(cacheNames = CacheNames.PRODUCT_BY_ID, key = "#productId"),
+        @CacheEvict(cacheNames = CacheNames.PRODUCT_BY_SLUG, allEntries = true)
+    })
+    public void addStock(Long productId, Integer quantity) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + productId));
+        
+        product.setQuantityInStock(product.getQuantityInStock() + quantity);
+        productRepository.save(product);
+        log.info("Added {} units to product {} (ID: {})", quantity, product.getName(), productId);
+    }
+    
+    /**
+     * Update product price
+     */
+    @Transactional
+    @Caching(evict = {
+        @CacheEvict(cacheNames = CacheNames.PRODUCT_LIST, allEntries = true),
+        @CacheEvict(cacheNames = CacheNames.PRODUCT_BY_ID, key = "#productId"),
+        @CacheEvict(cacheNames = CacheNames.PRODUCT_BY_SLUG, allEntries = true)
+    })
+    public void updatePrice(Long productId, BigDecimal newPrice) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + productId));
+        
+        BigDecimal oldPrice = product.getPrice();
+        product.setPrice(newPrice);
+        productRepository.save(product);
+        log.info("Updated price for product {} (ID: {}) from {} to {}", 
+                product.getName(), productId, oldPrice, newPrice);
+    }
+    
+    /**
+     * Find products by price range
+     */
+    @Transactional(readOnly = true)
+    public List<ProductResponse> findByPriceRange(BigDecimal minPrice, BigDecimal maxPrice) {
+        List<Product> products = productRepository.findByPriceBetween(minPrice, maxPrice);
+        return products.stream()
+                .map(productMapper::toResponse)
+                .toList();
+    }
+    
+    /**
+     * Find low stock products (below threshold)
+     */
+    @Transactional(readOnly = true)
+    public List<ProductResponse> findLowStockProducts(Integer threshold) {
+        List<Product> products = productRepository.findByQuantityInStockLessThan(threshold);
+        return products.stream()
+                .map(productMapper::toResponse)
+                .toList();
+    }
+    
+    /**
+     * Find products by name containing (case insensitive)
+     */
+    @Transactional(readOnly = true)
+    public List<ProductResponse> findByNameContaining(String name) {
+        List<Product> products = productRepository.findByNameContainingIgnoreCase(name);
+        return products.stream()
+                .map(productMapper::toResponse)
+                .toList();
+    }
+    
+    /**
+     * Get product statistics
+     */
+    @Transactional(readOnly = true)
+    public ProductStats getProductStats() {
+        long totalProducts = productRepository.count();
+        long outOfStockProducts = productRepository.countByQuantityInStock(0);
+        long lowStockProducts = productRepository.countByQuantityInStockLessThan(10);
+        
+        Optional<BigDecimal> avgPrice = productRepository.findAll().stream()
+                .map(Product::getPrice)
+                .reduce(BigDecimal::add)
+                .map(sum -> sum.divide(BigDecimal.valueOf(totalProducts), 2, BigDecimal.ROUND_HALF_UP));
+        
+        return ProductStats.builder()
+                .totalProducts(totalProducts)
+                .outOfStockProducts(outOfStockProducts)
+                .lowStockProducts(lowStockProducts)
+                .averagePrice(avgPrice.orElse(BigDecimal.ZERO))
+                .build();
+    }
+    
     /**
      * Generates a unique slug from the given name.
      * If the base slug already exists, appends a counter to make it unique.
@@ -145,5 +302,16 @@ public class ProductService {
         }
         
         return slug;
+    }
+    
+    // ==================== INNER CLASSES ====================
+    
+    @lombok.Data
+    @lombok.Builder
+    public static class ProductStats {
+        private long totalProducts;
+        private long outOfStockProducts;
+        private long lowStockProducts;
+        private BigDecimal averagePrice;
     }
 }

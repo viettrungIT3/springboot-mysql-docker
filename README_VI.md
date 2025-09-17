@@ -4,6 +4,7 @@
 
 > 📖 **Tiếng Anh**: [README.md](README.md) - Tài liệu tiếng Anh có sẵn
 
+- ✅ **Domain-Driven Design (DDD)** - Kiến trúc sạch với bounded contexts
 - ✅ **DTO-First Design** - Tách biệt hoàn toàn giữa hợp đồng API và các thực thể trong domain  
 - ✅ **MapStruct Integration** - Ánh xạ kiểu an toàn giữa DTO và Entity  
 - ✅ **Comprehensive Validation** - Bean validation với các quy tắc nghiệp vụ tùy chỉnh  
@@ -11,9 +12,11 @@
 - ✅ **Interactive Configuration Manager** - Giao diện trực quan, dễ sử dụng để quản lý cấu hình  
 - ✅ **Automated Backup System** - Hỗ trợ backup và khôi phục cấu hình tự động
 - ✅ **Caching Layer** - Spring Cache với Caffeine cải thiện hiệu suất 2 lần
+- ✅ **Service-Specific Commands** - Makefile được tối ưu hóa cho development hiệu quả
 
 ## 🚀 Quick Start
 
+### **🚀 Môi Trường Development Đầy Đủ**
 ```bash
 # Clone repository
 git clone <repository-url>
@@ -22,16 +25,53 @@ cd springboot-mysql-docker
 # Thiết lập cấu hình với giao diện tương tác
 make config
 
-# Khởi động môi trường development
+# Khởi động full stack (mysql + backend + frontend)
 make dev-start
 
-# Truy cập Swagger UI
-make swagger
+# Truy cập ứng dụng
+# Backend: http://localhost:${BACKEND_PORT:-8080}
+# Swagger UI: http://localhost:${BACKEND_PORT:-8080}/swagger-ui/index.html
+# Frontend: http://localhost:${FRONTEND_PORT:-3000}
 ```
 
-**Dừng & Reset:**
+### **⚡ Development Theo Service**
 ```bash
-make down
+# Chỉ development backend (API + Database)
+make dev-backend
+
+# Chỉ development API (Backend + Database, không có frontend)
+make dev-api
+
+# Kiểm tra trạng thái tất cả services
+make status
+
+# Restart service cụ thể
+make backend-restart    # Restart chỉ backend
+make frontend-restart   # Restart chỉ frontend
+make db-restart         # Restart chỉ database
+```
+
+### 🚀 **Development Tối Ưu Tốc Độ (Khuyến nghị)**
+```bash
+# ⚡ NHANH NHẤT: Hot reload (không build, ~5 giây)
+make dev-hot-reload     # Cho thay đổi cấu hình
+
+# 🔄 NHANH: Build tăng dần (~30 giây)  
+make dev-code-change    # Cho thay đổi Java code
+
+# 🚀 TRUNG BÌNH: Quick restart (~45 giây)
+make dev-quick-restart  # Cho thay đổi dependencies
+
+# 📊 Hiển thị tips tối ưu hóa
+make docker-optimize    # So sánh tốc độ build và khuyến nghị
+```
+
+### **🛑 Dừng & Reset**
+```bash
+# Dừng tất cả services
+make dev-stop
+
+# Clean up và reset (tạo lại DB volume)
 make clean
 make dev-start
 ```
@@ -91,6 +131,60 @@ make config-restore BACKUP=.env.backup.20240907_113905
 make config-clean-backups
 ```
 
+## 🏗️ Domain-Driven Design (DDD) Architecture
+
+### **Bounded Contexts**
+Ứng dụng được tổ chức thành các bounded contexts rõ ràng theo nguyên tắc DDD:
+
+```
+com.backend.backend/
+├── shared/                        # Shared Kernel
+│   ├── domain/
+│   │   ├── valueobject/           # Value Objects (Money, Slug, Email)
+│   │   ├── entity/                 # Base Entity (BaseEntity)
+│   │   └── exception/              # Domain Exceptions
+│   └── infrastructure/
+│       ├── util/
+│       └── constant/
+├── identity/                      # Identity & Access Management Context
+│   ├── domain/                    # Domain layer
+│   ├── application/               # Application layer
+│   ├── infrastructure/            # Infrastructure layer
+│   └── presentation/              # Presentation layer
+├── customer/                      # Customer Management Context
+├── catalog/                       # Product Catalog Context
+├── order/                         # Order Management Context
+└── infrastructure/                # Cross-cutting Infrastructure
+    ├── config/                    # Configuration
+    ├── web/                       # Web infrastructure
+    └── exception/                 # Global exception handling
+```
+
+### **DDD Development Commands**
+```bash
+# Validate DDD structure
+make ddd-validate
+
+# Check migration progress
+make ddd-migration-status
+
+# DDD-specific development
+make ddd-compile        # Fast Java compilation
+make ddd-quick-test     # Quick test execution
+make ddd-check          # Code quality check
+make ddd-clean-build    # Clean build for refactoring
+make ddd-restart-backend # Restart backend for DDD changes
+make ddd-logs           # Watch backend logs during DDD development
+make ddd-status         # Check DDD development status
+```
+
+### **Migration Phases**
+- ✅ **Phase 1**: Foundation Setup (Shared Kernel, Infrastructure)
+- ✅ **Phase 2**: Identity Context (Authentication & Authorization)
+- ✅ **Phase 3**: Business Context (Domain Services & Business Logic)
+- 🔄 **Phase 4**: Advanced Features (Business Logic Endpoints, Enhanced Validation)
+- 🔄 **Phase 5**: Production Readiness (Monitoring, Performance Optimization)
+
 ## Project Structure
 ```
 springboot-mysql-docker/
@@ -107,30 +201,37 @@ springboot-mysql-docker/
 │  ├─ build.gradle                   # MapStruct + Lombok + Spring Boot
 │  ├─ gradle/, gradlew, settings.gradle
 │  └─ src/main/java/com/backend/backend/
-│     ├─ api/                        # API layer
-│     │  └─ ApiError.java            # Global error handling
-│     ├─ config/                     # Configuration classes
-│     │  ├─ AppConfig.java           # Application configuration
-│     │  ├─ OpenApiConfig.java       # Dynamic server URL from .env
-│     │  ├─ SecurityConfig.java      # Security configuration
-│     │  └─ SeedProperties.java      # Data seeding configuration
-│     ├─ controller/                 # REST controllers
-│     │  ├─ customer/, supplier/, administrator/
-│     │  ├─ order/, orderitem/
-│     │  ├─ product/, stockentry/
-│     │  └─ Administrator.java
-│     ├─ dto/                        # Data Transfer Objects
-│     │  ├─ common/                  # Shared DTOs (PageResponse, etc.)
-│     │  ├─ customer/, supplier/, administrator/
-│     │  ├─ order/, orderitem/
-│     │  ├─ product/, stockentry/
-│     │  └─ CustomerDTO.java
-│     ├─ entity/                     # JPA entities
-│     │  ├─ base/                    # Base entity with audit fields
-│     │  ├─ customer/, supplier/, administrator/
-│     │  ├─ order/, orderitem/
-│     │  ├─ product/, stockentry/
-│     │  └─ Administrator.java
+│     ├─ BackendApplication.java      # Main application class
+│     ├─ shared/                      # 🏗️ Shared Kernel (DDD)
+│     │  ├─ domain/
+│     │  │  ├─ valueobject/           # Value Objects (Money, Slug, Email)
+│     │  │  ├─ entity/                 # Base Entity (BaseEntity)
+│     │  │  └─ exception/              # Domain Exceptions
+│     │  └─ infrastructure/
+│     ├─ infrastructure/              # 🏗️ Cross-cutting Infrastructure
+│     │  ├─ config/                   # Configuration (Security, Cache, CORS)
+│     │  ├─ web/                      # Web infrastructure (Filters, Logging)
+│     │  └─ exception/                # Global exception handling
+│     ├─ identity/                    # 🏗️ Identity & Access Management Context
+│     ├─ customer/                    # 🏗️ Customer Management Context
+│     ├─ catalog/                     # 🏗️ Product Catalog Context
+│     ├─ order/                       # 🏗️ Order Management Context
+│     ├─ config/                      # Configuration classes
+│     │  ├─ CacheConfig.java          # Caffeine cache configuration
+│     │  ├─ CacheNames.java           # Cache name constants
+│     │  └─ SecurityConfig.java       # Spring Security configuration
+│     ├─ dto/                         # Data Transfer Objects (organized by entity)
+│     │  ├─ common/                   # Shared DTOs (PageResponse, etc.)
+│     │  ├─ customer/                 # Customer DTOs
+│     │  ├─ order/                    # Order DTOs
+│     │  ├─ orderitem/                # OrderItem DTOs
+│     │  ├─ product/                  # Product DTOs
+│     │  ├─ supplier/                 # Supplier DTOs
+│     │  └─ user/                     # User DTOs
+│     ├─ entity/                      # Domain entities
+│     │  ├─ Order.java, OrderItem.java, StockEntry.java
+│     │  ├─ Product.java, Customer.java, Supplier.java
+│     │  └─ User.java (with Role enum)
 │     ├─ exception/                  # Exception handling
 │     │  ├─ GlobalExceptionHandler.java
 │     │  └─ ResourceNotFoundException.java
@@ -147,16 +248,26 @@ springboot-mysql-docker/
 │     │  ├─ order/, orderitem/
 │     │  ├─ product/, stockentry/
 │     │  └─ AdministratorRepository.java
-│     ├─ service/                    # Business logic
-│     │  ├─ customer/, supplier/, administrator/
-│     │  ├─ order/, orderitem/
-│     │  ├─ product/, stockentry/
-│     │  └─ AdministratorService.java
+│     ├─ service/                    # Business logic layer
+│     │  ├─ ProductService.java      # Inventory management with business logic
+│     │  ├─ OrderService.java        # Complex order processing
+│     │  ├─ CustomerService.java     # Customer management with business logic
+│     │  ├─ SupplierService.java     # Supplier management with business logic
+│     │  ├─ StockEntryService.java   # Stock management with business logic
+│     │  ├─ UserService.java         # User management with authentication
+│     │  ├─ JwtTokenService.java      # JWT token management
+│     │  └─ PasswordService.java     # Password hashing and validation
 │     ├─ util/                       # Utility classes
 │     │  ├─ PageMapper.java          # Pagination utility
 │     │  └─ SlugUtil.java            # Slug generation utility
-│     ├─ web/                        # Web layer components
-│     │  └─ WebConfig.java           # Web configuration
+│     ├─ controller/                 # RESTful API layer
+│     │  ├─ ProductController.java   # /api/v1/products (with business logic endpoints)
+│     │  ├─ OrderController.java     # /api/v1/orders
+│     │  ├─ CustomerController.java  # /api/v1/customers
+│     │  ├─ SupplierController.java  # /api/v1/suppliers
+│     │  ├─ UserController.java      # /api/v1/users
+│     │  ├─ AuthController.java      # /auth (authentication endpoints)
+│     │  └─ ...Controller.java       # CRUD + pagination + business logic endpoints
 │     └─ bootstrap/                  # Application startup components
 │        └─ DevTestDataSeeder.java   # Profile-based data seeding
 │  └─ src/main/resources/
@@ -169,7 +280,10 @@ springboot-mysql-docker/
 │     │     ├─ V1__init.sql          # Initial schema
 │     │     ├─ V2__seed_base.sql     # Base data seeding
 │     │     ├─ V3__add_slug_products_customers.sql
-│     │     └─ V4__add_audit_and_soft_delete.sql
+│     │     ├─ V4__add_audit_and_soft_delete.sql
+│     │     ├─ V5__add_stock_entries.sql      # Stock management migration
+│     │     ├─ V6__add_users_table.sql       # User authentication migration
+│     │     └─ V7__add_user_role.sql         # User role enum migration
 │     └─ logback-spring.xml          # Logging configuration
 ├─ docker-compose.yml                # Uses centralized .env variables
 ├─ makefile                          # Enhanced with config management commands
@@ -201,12 +315,29 @@ springboot-mysql-docker/
 
 ## API Endpoints
 
-### 🛍️ **Products**: `/api/v1/products` - Quản lý kho hàng với theo dõi tồn kho
-### 👥 **Customers**: `/api/v1/customers` - Quản lý khách hàng với hỗ trợ slug
-### 🏢 **Suppliers**: `/api/v1/suppliers` - Quản lý nhà cung cấp với thông tin liên hệ
-### 📋 **Orders**: `/api/v1/orders` - Quản lý đơn hàng với theo dõi sản phẩm
-### 👨‍💼 **Administrators**: `/api/v1/administrators` - Quản lý người dùng với mật khẩu bảo mật
-### 📦 **Stock Entries**: `/api/v1/stock-entries` - Giao dịch kho hàng
+### 🛍️ **Products**: `/api/v1/products` - Quản lý kho hàng với theo dõi tồn kho + business logic
+### 👥 **Customers**: `/api/v1/customers` - Quản lý khách hàng với hỗ trợ slug + business logic
+### 🏢 **Suppliers**: `/api/v1/suppliers` - Quản lý nhà cung cấp với thông tin liên hệ + business logic
+### 📋 **Orders**: `/api/v1/orders` - Quản lý đơn hàng với theo dõi sản phẩm + business logic
+### 👨‍💼 **Users**: `/api/v1/users` - Quản lý người dùng với mật khẩu bảo mật + authentication
+### 📦 **Stock Entries**: `/api/v1/stock-entries` - Giao dịch kho hàng + business logic
+### 🔐 **Authentication**: `/auth/*` - JWT-based authentication endpoints
+
+## Business Logic Features
+
+### **Domain Services với Business Rules**:
+- ✅ **ProductService**: Quản lý kho hàng, cập nhật giá, cảnh báo tồn kho thấp, thống kê sản phẩm
+- ✅ **CustomerService**: Validation khách hàng, tìm kiếm, quản lý thông tin liên hệ
+- ✅ **SupplierService**: Validation nhà cung cấp, theo dõi nhà cung cấp hoạt động, quản lý thông tin liên hệ
+- ✅ **OrderService**: Tính toán đơn hàng, lịch sử đơn hàng khách hàng, thống kê đơn hàng
+- ✅ **StockEntryService**: Quản lý giao dịch kho hàng, theo dõi tồn kho sản phẩm
+- ✅ **UserService**: Authentication, quản lý mật khẩu, kiểm soát truy cập dựa trên vai trò
+
+### **Business Logic Endpoints**:
+- 📊 **Statistics**: `/api/v1/products/stats`, `/api/v1/customers/stats`, `/api/v1/orders/stats`
+- 🔍 **Search**: `/api/v1/products/search`, `/api/v1/customers/search`, `/api/v1/suppliers/search`
+- 📈 **Analytics**: `/api/v1/products/low-stock`, `/api/v1/orders/by-date-range`
+- 🎯 **Business Operations**: Dự trữ kho hàng, tính toán đơn hàng, quản lý tồn kho
 
 ## API Examples
 
@@ -267,10 +398,10 @@ curl -X POST http://localhost:${BACKEND_PORT:-8080}/api/v1/stock-entries \
   }'
 ```
 
-#### **Quản trị Bảo mật**:
+#### **Authentication & User Management**:
 ```bash
-# Tạo administrator
-curl -X POST http://localhost:${BACKEND_PORT:-8080}/api/v1/administrators \
+# Đăng ký user mới
+curl -X POST http://localhost:${BACKEND_PORT:-8080}/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "username": "admin",
@@ -278,15 +409,27 @@ curl -X POST http://localhost:${BACKEND_PORT:-8080}/api/v1/administrators \
     "email": "admin@example.com",
     "fullName": "System Administrator"
   }'
+
+# Đăng nhập và lấy JWT token
+curl -X POST http://localhost:${BACKEND_PORT:-8080}/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "admin",
+    "password": "securepass123"
+  }'
 ```
 
 **Response:**
 ```json
 {
-  "id": 1,
-  "username": "admin",
-  "email": "admin@example.com",
-  "fullName": "System Administrator"
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": 1,
+    "username": "admin",
+    "email": "admin@example.com",
+    "fullName": "System Administrator",
+    "role": "USER"
+  }
 }
 ```
 
@@ -314,6 +457,24 @@ make clean
 
 # Rebuild và start
 make dev-rebuild
+```
+
+### ⚡ **Thao tác Tối Ưu Tốc Độ:**
+```bash
+# 🚀 NHANH NHẤT: Hot reload (~5 giây)
+make dev-hot-reload     # Chỉ cho thay đổi cấu hình
+
+# 🔄 NHANH: Build tăng dần (~30 giây)
+make dev-code-change    # Cho thay đổi Java code
+
+# 🚀 TRUNG BÌNH: Quick restart (~45 giây)  
+make dev-quick-restart  # Cho thay đổi dependencies
+
+# 📊 So sánh tốc độ build và tips
+make docker-optimize    # Hiển thị khuyến nghị tối ưu hóa
+
+# ⚠️ CHẬM: Full rebuild (~3-5 phút) - Chỉ dùng khi cần thiết
+make backend-rebuild    # Clean build với no-cache
 ```
 
 ### ⚙️ **Quản lý Cấu hình:**
@@ -356,6 +517,34 @@ make help
 - **Docker Desktop** (hoặc Docker Engine + Compose plugin)
 - **Make** (thường đã có sẵn trên macOS/Linux)
 - **Git**
+
+## 🚀 Docker Build Optimization
+
+### **So Sánh Tốc Độ Build:**
+| Command | Thời gian | Trường hợp sử dụng | Mô tả |
+|---------|-----------|-------------------|-------|
+| `make dev-hot-reload` | ~5 giây | Thay đổi config | Không build, chỉ restart |
+| `make dev-code-change` | ~30 giây | Thay đổi Java code | Build tăng dần |
+| `make dev-quick-restart` | ~45 giây | Thay đổi dependencies | Build + restart |
+| `make backend-rebuild` | ~3-5 phút | Vấn đề cache | Clean build (no-cache) |
+
+### **Tips Tối Ưu Hóa:**
+```bash
+# Hiển thị hướng dẫn tối ưu hóa chi tiết
+make docker-optimize
+
+# Sử dụng command phù hợp cho từng loại thay đổi:
+# - Cấu hình (.env, application.yml) → dev-hot-reload
+# - Thay đổi Java code → dev-code-change  
+# - Dependencies (build.gradle) → dev-quick-restart
+# - Vấn đề cache → backend-rebuild (chỉ khi cần thiết)
+```
+
+### **Tại Sao Các Commands Này Nhanh Hơn:**
+- **Docker Layer Caching**: Build tăng dần tái sử dụng cached layers
+- **Smart Build Strategy**: Chỉ rebuild những gì thay đổi
+- **No-Cache Avoidance**: `--no-cache` buộc rebuild hoàn toàn
+- **Targeted Operations**: Commands cụ thể cho từng loại thay đổi
 
 ## Troubleshooting
 
@@ -512,6 +701,115 @@ make help
   - Cải thiện hiệu suất 1.3-2 lần trên các endpoint được cache
   - Testing và monitoring toàn diện
 
+### ✅ Day 18 — DDD Architecture & Service-Specific Commands 🏗️⚡️
+* **Mục tiêu:** Implement Domain-Driven Design architecture và tối ưu hóa makefile với service-specific commands.
+* **Tiêu chí:** Clean architecture với bounded contexts, optimized development workflows, efficient service management.
+* **🎯 HOÀN THÀNH:** Complete DDD foundation setup với optimized makefile cho development hiệu quả
+* **Tính năng:**
+  - Domain-Driven Design architecture với bounded contexts
+  - Shared kernel với value objects (Money, Slug, Email)
+  - Infrastructure layer separation
+  - Service-specific makefile commands (75 optimized commands)
+  - DDD development workflow commands
+  - Legacy command aliases cho backward compatibility
+
+## ⚡ Service-Specific Commands
+
+### **Development Workflows**
+```bash
+# Môi trường development đầy đủ
+make dev-start      # Start mysql + backend + frontend
+make dev-backend    # Start backend + database only
+make dev-api        # Start API development (no frontend)
+make dev-stop       # Stop all services
+make dev-restart    # Restart all services
+```
+
+### **Development Tối Ưu Tốc Độ**
+```bash
+# ⚡ NHANH NHẤT: Hot reload (~5 giây)
+make dev-hot-reload     # Chỉ cho thay đổi cấu hình
+
+# 🔄 NHANH: Build tăng dần (~30 giây)
+make dev-code-change    # Cho thay đổi Java code
+
+# 🚀 TRUNG BÌNH: Quick restart (~45 giây)
+make dev-quick-restart  # Cho thay đổi dependencies
+
+# 📊 Tips tối ưu hóa và so sánh tốc độ
+make docker-optimize    # Hiển thị khuyến nghị tốc độ build
+```
+
+### **Service Management**
+```bash
+# Backend commands (tối ưu tốc độ)
+make backend-build      # Build backend only (với cache)
+make backend-quick-build # Quick build backend (tăng dần, nhanh)
+make backend-rebuild    # Rebuild backend (no-cache) - CHẬM
+make backend-force-rebuild # Force rebuild (clean + no-cache) - RẤT CHẬM
+make backend-start      # Start backend only
+make backend-stop       # Stop backend only
+make backend-restart    # Restart backend only
+make backend-quick-restart # Quick restart (build + restart, nhanh)
+make backend-dev-restart # Development restart (tối ưu cho dev)
+make backend-status     # Check backend status
+make backend-logs       # Watch backend logs
+
+# Frontend commands
+make frontend-build     # Build frontend only
+make frontend-rebuild   # Rebuild frontend (no-cache)
+make frontend-start     # Start frontend only
+make frontend-stop      # Stop frontend only
+make frontend-restart   # Restart frontend only
+make frontend-status    # Check frontend status
+make frontend-logs      # Watch frontend logs
+
+# Database commands
+make db-build           # Build database only
+make db-rebuild         # Rebuild database (no-cache)
+make db-start           # Start database only
+make db-stop            # Stop database only
+make db-restart         # Restart database only
+make db-status          # Check database status
+make db-logs            # Watch database logs
+
+# Combined services
+make services-build     # Build all services
+make services-rebuild   # Rebuild all services (no-cache)
+make services-start     # Start all services
+make services-stop      # Stop all services
+make services-restart   # Restart all services
+make status             # Check all services status
+```
+
+### **DDD Development Commands**
+```bash
+# DDD structure validation
+make ddd-validate           # Validate DDD structure
+make ddd-migration-status   # Show migration progress
+
+# DDD development workflow
+make ddd-compile            # Fast Java compilation
+make ddd-quick-test         # Quick test execution
+make ddd-check              # Code quality check
+make ddd-clean-build        # Clean build for refactoring
+make ddd-restart-backend    # Restart backend for DDD changes
+make ddd-logs               # Watch backend logs during DDD development
+make ddd-status             # Check DDD development status
+```
+
+### **Legacy Aliases (Backward Compatibility)**
+```bash
+make up         # → services-start
+make down       # → services-stop
+make restart    # → services-restart
+make rebuild    # → services-rebuild
+make ps         # → status
+make health     # → status
+make sh-app     # → shell-backend
+make sh-db      # → shell-db
+```
+
 ## 🏆 Trạng thái Kiến trúc Hiện tại & Chỉ số Kỹ thuật
 
 - 🔧 **Development UX**: Makefile toàn diện với 30+ commands bao gồm quản lý cấu hình
@@ -534,18 +832,17 @@ make help
 - 🔗 **SEO-Friendly URLs**: Global slug system với dual access patterns
 
 ### 📊 **Chỉ số Code:**
-- **17 Controllers** với thiết kế RESTful nhất quán và Swagger docs (bao gồm AuthenticationController, CorsTestController, RateLimitTestController)
-- **15 Services** với business logic và validation (bao gồm AuthenticationService)
-- **14 Repositories** với JPA và custom query methods
-- **14 Entities** với audit fields và soft delete support
-- **16 DTOs** với comprehensive validation annotations (bao gồm LoginRequest/Response)
-- **14 Mappers** với tích hợp MapStruct
-- **4 Flyway Migrations** với automated schema management và audit fields
+- **8 Controllers** với thiết kế RESTful nhất quán và Swagger docs (bao gồm AuthController)
+- **8 Services** với business logic và validation (6 domain services + 2 security services)
+- **7 Repositories** với JPA và custom query methods
+- **7 Entities** với audit fields và soft delete support
+- **21 DTOs** với comprehensive validation annotations và organized by entity
+- **7 Mappers** với tích hợp MapStruct
+- **7 Flyway Migrations** với automated schema management và audit fields (V1-V7)
 - **1 Data Seeder** với profile-based configuration và idempotent seeding
 - **1 Centralized Configuration System** với đồng bộ hóa tự động trên tất cả components
-- **1 Next.js Frontend** với 15+ components và services
-- **2 Security Filters** với CORS và Rate Limiting (CorsFilter, RateLimitFilter)
-- **2 Configuration Components** với environment-based settings (CorsProperties, RateLimitProperties)
+- **Clean Project Structure** với organized packages và consistent naming conventions
+- **Speed-Optimized Build System** với 4-tier build commands (5s-5min) và smart Docker caching
 
 ### 🎯 **Tính năng Chính:**
 - **Complete Audit Trail** - Quản lý tự động created_at, updated_at, deleted_at
@@ -557,5 +854,7 @@ make help
 - **Password Security** - BCrypt hashing với secure authentication flow
 - **CORS Security** - Environment-based CORS với endpoint-specific rules và comprehensive validation
 - **Rate Limiting** - Bucket4j-based protection với isolated buckets per endpoint type
-- **Modern Frontend** - Next.js Admin UI với responsive design và professional UX
-- **Full Stack Integration** - Seamless frontend-backend communication với Docker
+- **Business Logic** - Domain services với comprehensive business rules và validation
+- **Clean Architecture** - Project structure cleanup với organized packages và consistent naming
+- **JWT Authentication** - Stateless authentication với role-based access control
+- **Build Optimization** - Speed-optimized Docker commands với incremental builds và smart caching

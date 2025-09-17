@@ -18,6 +18,9 @@ Tăng tốc các API đọc nhiều/ít đổi (GET by id/slug, list) bằng cá
 - **Order by Customer**: 0.143s → 0.028s (nhanh hơn 5.1 lần)
 
 ### ✅ **Cache Eviction hoạt động đúng**
+- ✅ **Create**: Cache bị xóa khi tạo product/supplier mới
+- ✅ **Delete**: Cache bị xóa khi xóa product/supplier
+- ✅ **Update**: Cache bị xóa khi update product/supplier
 - ✅ **Create**: Cache bị xóa khi tạo product/supplier/customer/order mới
 - ✅ **Delete**: Cache bị xóa khi xóa product/supplier/customer/order
 - ✅ **Update**: Cache bị xóa khi update product/supplier/customer/order

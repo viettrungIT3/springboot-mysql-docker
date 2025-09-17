@@ -15,27 +15,22 @@ import com.backend.backend.util.PageMapper;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class StockEntryService {
 
     private final StockEntryRepository stockEntryRepository;
     private final ProductRepository productRepository;
     private final SupplierRepository supplierRepository;
     private final StockEntryMapper stockEntryMapper;
-
-    public StockEntryService(StockEntryRepository stockEntryRepository,
-            ProductRepository productRepository,
-            SupplierRepository supplierRepository,
-            StockEntryMapper stockEntryMapper) {
-        this.stockEntryRepository = stockEntryRepository;
-        this.productRepository = productRepository;
-        this.supplierRepository = supplierRepository;
-        this.stockEntryMapper = stockEntryMapper;
-    }
 
     @Transactional
     public StockEntryResponse create(StockEntryCreateRequest request) {
@@ -146,7 +141,206 @@ public class StockEntryService {
         product.setQuantityInStock(product.getQuantityInStock() - entity.getQuantity());
         productRepository.save(product);
 
-        entity.markAsDeleted();
+        entity.delete();
         stockEntryRepository.save(entity);
+    }
+    
+    // ==================== BUSINESS LOGIC METHODS ====================
+    
+    /**
+     * Get stock entries by product
+     */
+    @Transactional(readOnly = true)
+    public List<StockEntryResponse> findByProduct(Long productId) {
+        if (!productRepository.existsById(productId)) {
+            throw new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + productId);
+        }
+        
+        List<StockEntry> entries = stockEntryRepository.findByProductId(productId);
+        return entries.stream()
+                .map(stockEntryMapper::toResponse)
+                .toList();
+    }
+    
+    /**
+     * Get stock entries by supplier
+     */
+    @Transactional(readOnly = true)
+    public List<StockEntryResponse> findBySupplier(Long supplierId) {
+        if (!supplierRepository.existsById(supplierId)) {
+            throw new ResourceNotFoundException("Không tìm thấy nhà cung cấp với ID: " + supplierId);
+        }
+        
+        List<StockEntry> entries = stockEntryRepository.findBySupplierId(supplierId);
+        return entries.stream()
+                .map(stockEntryMapper::toResponse)
+                .toList();
+    }
+    
+    /**
+     * Get stock entries by date range
+     */
+    @Transactional(readOnly = true)
+    public List<StockEntryResponse> findByDateRange(OffsetDateTime startDate, OffsetDateTime endDate) {
+        List<StockEntry> entries = stockEntryRepository.findByEntryDateBetween(startDate, endDate);
+        return entries.stream()
+                .map(stockEntryMapper::toResponse)
+                .toList();
+    }
+    
+    /**
+     * Get stock entries by quantity range
+     */
+    @Transactional(readOnly = true)
+    public List<StockEntryResponse> findByQuantityRange(Integer minQuantity, Integer maxQuantity) {
+        List<StockEntry> entries = stockEntryRepository.findByQuantityBetween(minQuantity, maxQuantity);
+        return entries.stream()
+                .map(stockEntryMapper::toResponse)
+                .toList();
+    }
+    
+    /**
+     * Get stock statistics
+     */
+    @Transactional(readOnly = true)
+    public StockStats getStockStats() {
+        List<StockEntry> allEntries = stockEntryRepository.findAll();
+        
+        long totalEntries = allEntries.size();
+        long totalQuantity = allEntries.stream()
+                .mapToInt(StockEntry::getQuantity)
+                .sum();
+        
+        // Count entries by date range (last 30 days)
+        OffsetDateTime thirtyDaysAgo = OffsetDateTime.now().minusDays(30);
+        long recentEntries = allEntries.stream()
+                .filter(entry -> entry.getEntryDate() != null && entry.getEntryDate().isAfter(thirtyDaysAgo))
+                .count();
+        
+        // Count unique products and suppliers
+        long uniqueProducts = allEntries.stream()
+                .map(entry -> entry.getProduct().getId())
+                .distinct()
+                .count();
+        
+        long uniqueSuppliers = allEntries.stream()
+                .map(entry -> entry.getSupplier().getId())
+                .distinct()
+                .count();
+        
+        return StockStats.builder()
+                .totalEntries(totalEntries)
+                .totalQuantity(totalQuantity)
+                .recentEntries(recentEntries)
+                .uniqueProducts(uniqueProducts)
+                .uniqueSuppliers(uniqueSuppliers)
+                .build();
+    }
+    
+    /**
+     * Get stock statistics for a specific product
+     */
+    @Transactional(readOnly = true)
+    public ProductStockStats getProductStockStats(Long productId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + productId));
+        
+        List<StockEntry> entries = stockEntryRepository.findByProductId(productId);
+        
+        long totalEntries = entries.size();
+        long totalQuantityReceived = entries.stream()
+                .mapToInt(StockEntry::getQuantity)
+                .sum();
+        
+        long uniqueSuppliers = entries.stream()
+                .map(entry -> entry.getSupplier().getId())
+                .distinct()
+                .count();
+        
+        // Find most recent entry
+        Optional<StockEntry> mostRecentEntry = entries.stream()
+                .filter(entry -> entry.getEntryDate() != null)
+                .max((e1, e2) -> e1.getEntryDate().compareTo(e2.getEntryDate()));
+        
+        return ProductStockStats.builder()
+                .productId(productId)
+                .productName(product.getName())
+                .totalEntries(totalEntries)
+                .totalQuantityReceived(totalQuantityReceived)
+                .uniqueSuppliers(uniqueSuppliers)
+                .mostRecentEntryDate(mostRecentEntry.map(StockEntry::getEntryDate).orElse(null))
+                .build();
+    }
+    
+    /**
+     * Validate stock entry data before creation
+     */
+    @Transactional(readOnly = true)
+    public void validateStockEntryData(StockEntryCreateRequest request) {
+        if (request.getProductId() == null || !productRepository.existsById(request.getProductId())) {
+            throw new IllegalArgumentException("Không tìm thấy sản phẩm với ID: " + request.getProductId());
+        }
+        
+        if (request.getSupplierId() != null && !supplierRepository.existsById(request.getSupplierId())) {
+            throw new IllegalArgumentException("Không tìm thấy nhà cung cấp với ID: " + request.getSupplierId());
+        }
+        
+        if (request.getQuantity() == null || request.getQuantity() <= 0) {
+            throw new IllegalArgumentException("Số lượng nhập kho phải lớn hơn 0");
+        }
+    }
+    
+    /**
+     * Get stock entries with advanced search
+     */
+    @Transactional(readOnly = true)
+    public List<StockEntryResponse> searchStockEntries(Long productId, Long supplierId, 
+                                                      OffsetDateTime startDate, OffsetDateTime endDate) {
+        List<StockEntry> entries;
+        
+        if (productId != null && supplierId != null) {
+            // Search by both product and supplier
+            entries = stockEntryRepository.findByProductIdAndSupplierId(productId, supplierId);
+        } else if (productId != null) {
+            // Search by product only
+            entries = stockEntryRepository.findByProductId(productId);
+        } else if (supplierId != null) {
+            // Search by supplier only
+            entries = stockEntryRepository.findBySupplierId(supplierId);
+        } else {
+            // Search by date range or return all
+            if (startDate != null && endDate != null) {
+                entries = stockEntryRepository.findByEntryDateBetween(startDate, endDate);
+            } else {
+                entries = stockEntryRepository.findAll();
+            }
+        }
+        
+        return entries.stream()
+                .map(stockEntryMapper::toResponse)
+                .toList();
+    }
+    
+    // ==================== INNER CLASSES ====================
+    
+    @lombok.Data
+    @lombok.Builder
+    public static class StockStats {
+        private long totalEntries;
+        private long totalQuantity;
+        private long recentEntries;
+        private long uniqueProducts;
+        private long uniqueSuppliers;
+    }
+    
+    @lombok.Data
+    @lombok.Builder
+    public static class ProductStockStats {
+        private Long productId;
+        private String productName;
+        private long totalEntries;
+        private long totalQuantityReceived;
+        private long uniqueSuppliers;
+        private OffsetDateTime mostRecentEntryDate;
     }
 }
