@@ -1,0 +1,97 @@
+{
+  "info": {
+    "name": "SpringBoot MySQL Demo E2E",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "E2E: create customer → add products → create order → confirm order"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "http://localhost:8080/actuator/health",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["actuator","health"]
+        }
+      }
+    },
+    {
+      "name": "Create Product",
+      "request": {
+        "method": "POST",
+        "header": [{"key":"Content-Type","value":"application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Laptop Demo\",\n  \"description\": \"Demo product\",\n  \"price\": 1299.99,\n  \"quantityInStock\": 5\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/v1/products",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api","v1","products"]
+        }
+      }
+    },
+    {
+      "name": "List Products (Page)",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "http://localhost:8080/api/v1/products?page=0&size=5&sort=id,desc",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api","v1","products"],
+          "query": [
+            {"key":"page","value":"0"},
+            {"key":"size","value":"5"},
+            {"key":"sort","value":"id,desc"}
+          ]
+        }
+      }
+    },
+    {
+      "name": "Create Order",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key":"Content-Type","value":"application/json"},
+          {"key":"Idempotency-Key","value":"demo-{{timestamp}}"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"customerId\": 1,\n  \"items\": [\n    { \"productId\": 1, \"quantity\": 1 }\n  ]\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/v1/orders",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api","v1","orders"]
+        }
+      }
+    },
+    {
+      "name": "Confirm Order",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "http://localhost:8080/api/v1/orders/1/confirm",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api","v1","orders","1","confirm"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {"key":"timestamp","value":"{{$timestamp}}"}
+  ]
+}
+
+
