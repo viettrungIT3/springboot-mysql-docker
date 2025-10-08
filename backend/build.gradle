@@ -73,6 +73,16 @@ tasks.named('test') {
 	finalizedBy jacocoTestReport
 }
 
+// Generate build-info for Actuator /actuator/info
+springBoot {
+    buildInfo()
+}
+
+// Ensure build-info is included during resource processing
+tasks.named('processResources') {
+    dependsOn 'bootBuildInfo'
+}
+
 jacocoTestReport {
 	reports {
 		xml.required = false
