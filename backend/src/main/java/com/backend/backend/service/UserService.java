@@ -247,7 +247,7 @@ public class UserService {
     @Transactional(readOnly = true)
     public boolean hasRole(Long userId, Role role) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng với ID: " + userId));
+                .orElseThrow(() -> UserException.notFound(userId));
         return user.hasRole(role);
     }
 }

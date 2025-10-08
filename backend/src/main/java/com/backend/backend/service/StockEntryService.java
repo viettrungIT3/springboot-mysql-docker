@@ -151,7 +151,7 @@ public class StockEntryService {
     @Transactional(readOnly = true)
     public List<StockEntryResponse> findByProduct(Long productId) {
         if (!productRepository.existsById(productId)) {
-            throw new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + productId);
+            throw ProductException.notFound(productId);
         }
         
         List<StockEntry> entries = stockEntryRepository.findByProductId(productId);
@@ -166,7 +166,7 @@ public class StockEntryService {
     @Transactional(readOnly = true)
     public List<StockEntryResponse> findBySupplier(Long supplierId) {
         if (!supplierRepository.existsById(supplierId)) {
-            throw new ResourceNotFoundException("Không tìm thấy nhà cung cấp với ID: " + supplierId);
+            throw SupplierException.notFound(supplierId);
         }
         
         List<StockEntry> entries = stockEntryRepository.findBySupplierId(supplierId);
@@ -241,7 +241,7 @@ public class StockEntryService {
     @Transactional(readOnly = true)
     public ProductStockStats getProductStockStats(Long productId) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + productId));
+                .orElseThrow(() -> ProductException.notFound(productId));
         
         List<StockEntry> entries = stockEntryRepository.findByProductId(productId);
         

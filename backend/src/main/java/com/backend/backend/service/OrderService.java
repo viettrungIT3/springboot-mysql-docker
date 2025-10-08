@@ -12,6 +12,7 @@ import com.backend.backend.shared.domain.exception.OrderException;
 import com.backend.backend.shared.domain.exception.CustomerException;
 import com.backend.backend.shared.domain.exception.ProductException;
 import com.backend.backend.mapper.OrderMapper;
+import com.backend.backend.shared.domain.exception.OrderItemException;
 import com.backend.backend.repository.CustomerRepository;
 import com.backend.backend.repository.OrderRepository;
 import com.backend.backend.repository.ProductRepository;
