@@ -60,6 +60,22 @@ jobs:
           name: backend-sbom
           path: backend-sbom.spdx.json
 
+      - name: Trivy scan backend image (HIGH/CRITICAL)
+        run: |
+          make security-scan-trivy
+
+      - name: OWASP Dependency Check (HTML report)
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+        run: |
+          make security-scan-dep
+      
+      - name: Upload Dependency Check report
+        uses: actions/upload-artifact@v4
+        with:
+          name: odc-report
+          path: odc-report
+
       - name: Show images
         run: docker images | head -n 20
 

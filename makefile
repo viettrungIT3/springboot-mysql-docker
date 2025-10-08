@@ -638,6 +638,20 @@ backend-sbom: ## 📦 Generate SBOM for backend image with Syft
 	  -v $(PWD):/work anchore/syft:latest packages docker:$(shell basename $(PWD))-backend:latest -o spdx-json=/work/backend-sbom.spdx.json
 	@echo "✅ SBOM generated at backend-sbom.spdx.json"
 
+.PHONY: security-scan-trivy
+security-scan-trivy: ## 🔐 Scan backend image with Trivy (HIGH/CRITICAL)
+	@echo "🔐 Scanning backend image with Trivy..."
+	@docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image --exit-code 1 --severity HIGH,CRITICAL $(shell basename $(PWD))-backend:latest || (echo "❌ Vulnerabilities found" && exit 1)
+	@echo "✅ Trivy scan passed (no HIGH/CRITICAL)"
+
+.PHONY: security-scan-dep
+security-scan-dep: ## 🛡️ OWASP Dependency Check (Docker), HTML report at ./odc-report
+	@echo "🛡️ Running OWASP Dependency Check..."
+	@mkdir -p odc-report
+	@docker run --rm -e "NVD_API_KEY=$$NVD_API_KEY" -v $(PWD)/backend:/src -v $(PWD)/odc-report:/report owasp/dependency-check:latest \
+	  --scan /src --format HTML --out /report --failOnCVSS 7.0
+	@echo "✅ Dependency Check passed; report in odc-report/index.html"
+
 .PHONY: backup-db
 backup-db: ## 💾 Backup database to file
 	@echo "💾 Creating database backup..."
