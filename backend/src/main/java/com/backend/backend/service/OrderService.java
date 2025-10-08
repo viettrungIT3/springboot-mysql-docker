@@ -8,6 +8,7 @@ import com.backend.backend.dto.order.OrderUpdateRequest;
 import com.backend.backend.entity.Order;
 import com.backend.backend.entity.OrderItem;
 import com.backend.backend.entity.Product;
+import com.backend.backend.entity.StockEntry;
 import com.backend.backend.shared.domain.exception.OrderException;
 import com.backend.backend.shared.domain.exception.CustomerException;
 import com.backend.backend.shared.domain.exception.ProductException;
@@ -16,6 +17,7 @@ import com.backend.backend.shared.domain.exception.OrderItemException;
 import com.backend.backend.repository.CustomerRepository;
 import com.backend.backend.repository.OrderRepository;
 import com.backend.backend.repository.ProductRepository;
+import com.backend.backend.repository.StockEntryRepository;
 import com.backend.backend.util.PageMapper;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -40,6 +42,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final CustomerRepository customerRepository;
     private final ProductRepository productRepository;
+    private final StockEntryRepository stockEntryRepository;
     private final OrderMapper orderMapper;
 
     @Transactional
@@ -238,6 +241,41 @@ public class OrderService {
                 .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         order.setTotalAmount(total);
+
+        Order saved = orderRepository.save(order);
+        return orderMapper.toResponse(saved);
+    }
+
+    /**
+     * Confirm order: recalculate total and record stock movements as StockEntry (negative quantity)
+     */
+    @Transactional
+    @Caching(evict = {
+        @CacheEvict(cacheNames = CacheNames.ORDER_LIST, allEntries = true),
+        @CacheEvict(cacheNames = CacheNames.ORDER_BY_ID, key = "#orderId"),
+        @CacheEvict(cacheNames = CacheNames.ORDER_BY_CUSTOMER, allEntries = true)
+    })
+    public OrderResponse confirm(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> OrderException.notFound(orderId));
+
+        // Recalculate total to ensure consistency
+        BigDecimal total = order.getItems().stream()
+                .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        order.setTotalAmount(total);
+
+        // Record stock movement entries (negative quantities)
+        OffsetDateTime now = OffsetDateTime.now();
+        for (OrderItem item : order.getItems()) {
+            StockEntry movement = StockEntry.builder()
+                    .product(item.getProduct())
+                    .supplier(null)
+                    .quantity(-item.getQuantity())
+                    .entryDate(now)
+                    .build();
+            stockEntryRepository.save(movement);
+        }
 
         Order saved = orderRepository.save(order);
         return orderMapper.toResponse(saved);
