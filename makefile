@@ -34,6 +34,8 @@ help: ## 📚 Show all available commands
 	@echo ""
 	@echo "\n⚡ SERVICE MANAGEMENT:"
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / && /backend-|frontend-|db-|services-/ {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@echo "\n📈 OBSERVABILITY:"
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / && /observability|prometheus|grafana/ {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 	@echo ""
 	@echo "\n🔍 MONITORING & DEBUG:"
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / && /logs|status|health|shell/ {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -310,6 +312,22 @@ services-restart: ## 🔃 Restart all services
 	@echo "⏳ Waiting for all services to restart..."
 	@sleep 20
 	@echo "✅ All services restarted!"
+
+# ==== OBSERVABILITY ====
+
+.PHONY: observability-up
+observability-up: ## 📈 Start Prometheus + Grafana (requires backend running locally on 8080)
+	@echo "📈 Starting Prometheus + Grafana..."
+	docker compose -f docker-compose.observability.yml up -d
+	@echo "✅ Observability stack started!"
+	@echo "🔗 Prometheus: http://localhost:9090"
+	@echo "🔗 Grafana:    http://localhost:3001 (admin/admin)"
+
+.PHONY: observability-down
+observability-down: ## 🛑 Stop Prometheus + Grafana
+	@echo "🛑 Stopping Observability stack..."
+	docker compose -f docker-compose.observability.yml down --remove-orphans
+	@echo "✅ Observability stack stopped!"
 
 # ==== MONITORING & DEBUG ====
 
