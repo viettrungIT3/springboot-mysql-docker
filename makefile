@@ -329,6 +329,39 @@ observability-down: ## 🛑 Stop Prometheus + Grafana
 	docker compose -f docker-compose.observability.yml down --remove-orphans
 	@echo "✅ Observability stack stopped!"
 
+# ==== CLIENT GENERATION (OpenAPI) ====
+
+.PHONY: client-gen-prepare
+client-gen-prepare: ## 🧰 Fetch OpenAPI spec to clients/openapi.json
+	@echo "🧰 Preparing OpenAPI spec..."
+	@mkdir -p clients
+	@echo "⏳ Starting backend (if not running) to fetch OpenAPI JSON..."
+	$(MAKE) backend-start
+	@sleep 8
+	@curl -sSf http://localhost:$(BACKEND_PORT)/v3/api-docs -o clients/openapi.json
+	@echo "✅ OpenAPI spec saved to clients/openapi.json"
+
+.PHONY: client-gen-ts
+client-gen-ts: client-gen-prepare ## 🧪 Generate TypeScript Axios client into clients/typescript-axios
+	@echo "🧪 Generating TypeScript Axios client..."
+	@mkdir -p clients/typescript-axios
+	docker run --rm -v $(PWD):/local openapitools/openapi-generator-cli:v7.7.0 generate \
+	  -i /local/clients/openapi.json \
+	  -g typescript-axios \
+	  -o /local/clients/typescript-axios \
+	  --additional-properties=supportsES6=true,npmName=@app/api-client,withSeparateModelsAndApi=true,apiPackage=api,modelPackage=models
+	@echo "✅ TypeScript client generated at clients/typescript-axios"
+
+.PHONY: client-gen
+client-gen: client-gen-ts ## 🚀 Generate all sample API clients
+	@echo "🚀 Client generation completed!"
+
+.PHONY: client-test
+client-test: ## 🔎 Smoke test generated TypeScript client via Docker (needs backend up)
+	@echo "🔎 Smoke testing generated TS client (Docker)..."
+	docker run --rm -v $(PWD)/clients/typescript-axios:/proj -w /proj node:20-alpine sh -lc "node -e \"const {ProductsApi, Configuration}=require('./dist'); (async()=>{const api=new ProductsApi(new Configuration({basePath:'http://host.docker.internal:$(BACKEND_PORT)'})); const res=await api.list3(0,5,'id,desc'); console.log('OK products page size:', res.data?.content?.length ?? 'unknown');})();\""
+	@echo "✅ Client smoke test finished"
+
 # ==== MONITORING & DEBUG ====
 
 .PHONY: status
