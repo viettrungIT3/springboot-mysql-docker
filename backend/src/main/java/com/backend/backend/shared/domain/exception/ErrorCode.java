@@ -36,7 +36,7 @@ public enum ErrorCode {
     ACCESS_DENIED("APP-0103", "Access Denied", "Insufficient permissions to access this resource"),
     USER_NOT_FOUND("APP-0104", "User Not Found", "User does not exist"),
     USER_DISABLED("APP-0105", "User Disabled", "User account is disabled"),
-    PASSWORD_TOO_WEAK("APP-0106", "Password Too Weak", "Password does not meet security requirements"),
+    PASSWORD_TOO_WEAK("APP-0106", "Credential Too Weak", "Credential does not meet security requirements"),
     ACCOUNT_LOCKED("APP-0107", "Account Locked", "User account is locked"),
     INVALID_ROLE("APP-0108", "Invalid Role", "User role is invalid or not supported"),
     
