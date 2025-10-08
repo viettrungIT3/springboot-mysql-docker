@@ -67,6 +67,12 @@ public class OrderController {
         return ResponseEntity.ok(orderService.addItem(orderId, productId, quantity));
     }
 
+    @Operation(summary = "Confirm order", description = "Xác nhận đơn hàng: tính lại tổng tiền và ghi nhận xuất kho")
+    @PostMapping("/{orderId}/confirm")
+    public ResponseEntity<OrderResponse> confirm(@PathVariable Long orderId) {
+        return ResponseEntity.ok(orderService.confirm(orderId));
+    }
+
     @Operation(summary = "Delete order", description = "Xóa một đơn hàng khỏi hệ thống (soft delete - đánh dấu deleted_at, dữ liệu vẫn còn trong DB)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Xóa thành công (soft delete)"),
