@@ -131,6 +131,18 @@ make config-restore BACKUP=.env.backup.20240907_113905
 make config-clean-backups
 ```
 
+### 📈 Observability & Client (Ngày 22, 26)
+```bash
+# Stack tuỳ chọn Prometheus + Grafana
+make observability-up       # Khởi động Prometheus & Grafana
+make observability-status   # Xem trạng thái
+make observability-down     # Dừng stack
+
+# Sinh và test nhanh client TypeScript (chạy trong Docker)
+make client-gen             # Sinh vào clients/typescript-axios
+make client-test            # Gọi thử API trong container Node
+```
+
 ## 🏗️ Domain-Driven Design (DDD) Architecture
 
 ### **Bounded Contexts**
@@ -513,6 +525,17 @@ make swagger
 make help
 ```
 
+### 🔐 Bảo mật & Chuỗi cung ứng (Ngày 28–29)
+```bash
+# Build image backend slim (alpine JRE) và sinh SBOM (Syft)
+make backend-slim-build
+make backend-sbom           # xuất backend-sbom.spdx.json
+
+# Quét bảo mật
+make security-scan-trivy    # Trivy HIGH/CRITICAL cho image backend
+make security-scan-dep      # OWASP Dependency Check (báo cáo HTML trong ./odc-report)
+```
+
 ## Prerequisites
 - **Docker Desktop** (hoặc Docker Engine + Compose plugin)
 - **Make** (thường đã có sẵn trên macOS/Linux)
@@ -702,6 +725,41 @@ make docker-optimize
   - Testing và monitoring toàn diện
 
 ### ✅ Day 18 — DDD Architecture & Service-Specific Commands 🏗️⚡️
+### ✅ Day 19 — Error catalog & mã lỗi 🚨
+* Chuẩn hoá mã lỗi (APP-xxxx), phân cấp exception, tài liệu và tests.
+
+### ✅ Day 20 — API Versioning & Deprecation
+* Thêm filter forward `/api/**` → `/api/v1/**` kèm deprecation headers.
+
+### ✅ Day 21 — Actuator & Build Info
+* Bật actuator (health, info, metrics) và sinh build-info.
+
+### ✅ Day 22 — Micrometer + Prometheus
+* Expose `/actuator/prometheus`, thêm compose observability và cấu hình Prometheus.
+
+### ✅ Day 23 — CSV Import/Export (Products)
+* Endpoints: `POST /api/v1/products/import-csv`, `GET /api/v1/products/export-csv`.
+
+### ✅ Day 24 — Idempotency & Optimistic Locking
+* Bắt buộc `Idempotency-Key` cho `POST /api/v1/orders`; thêm `@Version` vào `Order`.
+
+### ✅ Day 25 — Business Rules Xác nhận Đơn
+* `POST /api/v1/orders/{id}/confirm`: tính lại `totalAmount`, ghi `StockEntry` xuất kho.
+
+### ✅ Day 26 — OpenAPI Client Generation
+* Docker hoá `client-gen` và `client-test`; commit sample client `clients/typescript-axios`.
+
+### ✅ Day 27 — CI Workflow
+* GitHub Actions: Gradle tests, Docker build, SBOM upload.
+
+### ✅ Day 28 — Slim Image + SBOM
+* Chuyển sang Alpine JRE và tạo SBOM với Syft.
+
+### ✅ Day 29 — Security Scans
+* Trivy (HIGH/CRITICAL) và OWASP Dependency Check, upload artifact báo cáo.
+
+### ✅ Day 30 — Demo Collections
+* Postman/Insomnia collections + hướng dẫn E2E trong `docs/`.
 * **Mục tiêu:** Implement Domain-Driven Design architecture và tối ưu hóa makefile với service-specific commands.
 * **Tiêu chí:** Clean architecture với bounded contexts, optimized development workflows, efficient service management.
 * **🎯 HOÀN THÀNH:** Complete DDD foundation setup với optimized makefile cho development hiệu quả

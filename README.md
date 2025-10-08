@@ -76,6 +76,18 @@ make clean
 make dev-start
 ```
 
+### 📈 Observability & Client (Days 22, 26)
+```bash
+# Optional Prometheus + Grafana stack
+make observability-up       # Start Prometheus & Grafana
+make observability-status   # Check status
+make observability-down     # Stop stack
+
+# Generate and test sample TypeScript API client (Docker-based)
+make client-gen             # Generate client into clients/typescript-axios
+make client-test            # Smoke test client call via Docker
+```
+
 ## 🎯 Centralized Configuration (.env)
 **Single file configuration** - Edit only `.env` to change all system settings:
 
@@ -527,6 +539,17 @@ make dev-status
 make help
 ```
 
+### 🔐 Security & Supply Chain (Days 28–29)
+```bash
+# Build slim backend image (alpine JRE) and generate SBOM (Syft)
+make backend-slim-build
+make backend-sbom           # outputs backend-sbom.spdx.json
+
+# Security scans
+make security-scan-trivy    # Trivy HIGH/CRITICAL scan for backend image
+make security-scan-dep      # OWASP Dependency Check (HTML report in ./odc-report)
+```
+
 ## 🚀 Docker Build Optimization
 
 ### **Build Speed Comparison:**
@@ -740,6 +763,40 @@ make docker-optimize
   - **Testing**: Comprehensive unit and integration tests for error scenarios
   - **Business Logic**: Domain-specific exceptions for Product, Customer, Order, User
   - **Validation**: Enhanced validation error handling with field-specific error codes
+
+### ✅ Day 20 — API Versioning & Deprecation
+* Added filter to forward legacy `/api/**` → `/api/v1/**` with deprecation headers.
+
+### ✅ Day 21 — Actuator & Build Info
+* Enabled actuator endpoints (health, info, metrics) and build info generation.
+
+### ✅ Day 22 — Micrometer + Prometheus
+* Exposed `/actuator/prometheus`, optional `docker-compose.observability.yml`, and Prometheus config.
+
+### ✅ Day 23 — CSV Import/Export (Products)
+* Endpoints: `POST /api/v1/products/import-csv`, `GET /api/v1/products/export-csv`.
+
+### ✅ Day 24 — Idempotency & Optimistic Locking
+* Enforce `Idempotency-Key` header for `POST /api/v1/orders`; add `@Version` to `Order`.
+
+### ✅ Day 25 — Order Confirmation Business Rules
+* `POST /api/v1/orders/{id}/confirm`: recalc `totalAmount` and write `StockEntry` outflow.
+
+### ✅ Day 26 — OpenAPI Client Generation
+* Dockerized `client-gen` and `client-test`; commit sample client at `clients/typescript-axios`.
+
+### ✅ Day 27 — CI Workflow
+* GitHub Actions: Gradle tests, Docker build, SBOM upload.
+
+### ✅ Day 28 — Slim Image + SBOM
+* Alpine JRE base image and Syft SBOM generation.
+
+### ✅ Day 29 — Security Scans
+* Trivy image scan (HIGH/CRITICAL) and OWASP Dependency Check with artifact upload.
+
+### ✅ Day 30 — Demo Collections
+* Postman/Insomnia collections and E2E demo guide in `docs/`.
+
 
 ## ⚡ Service-Specific Commands
 
