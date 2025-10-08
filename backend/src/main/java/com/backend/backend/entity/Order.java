@@ -35,5 +35,9 @@ public class Order extends AuditableEntity {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<OrderItem> items;
+
+    @Version
+    @Column(name = "version")
+    private Long version;
 }
 
