@@ -6,7 +6,7 @@ import com.backend.backend.dto.supplier.SupplierCreateRequest;
 import com.backend.backend.dto.supplier.SupplierResponse;
 import com.backend.backend.dto.supplier.SupplierUpdateRequest;
 import com.backend.backend.entity.Supplier;
-import com.backend.backend.exception.ResourceNotFoundException;
+import com.backend.backend.shared.domain.exception.SupplierException;
 import com.backend.backend.mapper.SupplierMapper;
 import com.backend.backend.repository.SupplierRepository;
 import com.backend.backend.util.PageMapper;
@@ -48,7 +48,7 @@ public class SupplierService {
     })
     public SupplierResponse update(Long id, SupplierUpdateRequest request) {
         Supplier entity = supplierRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy nhà cung cấp với ID: " + id));
+                .orElseThrow(() -> SupplierException.notFound(id));
         supplierMapper.updateEntity(entity, request); // partial update
         Supplier saved = supplierRepository.save(entity);
         return supplierMapper.toResponse(saved);
@@ -58,7 +58,7 @@ public class SupplierService {
     @Cacheable(cacheNames = CacheNames.SUPPLIER_BY_ID, key = "#id")
     public SupplierResponse getById(Long id) {
         Supplier entity = supplierRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy nhà cung cấp với ID: " + id));
+                .orElseThrow(() -> SupplierException.notFound(id));
         return supplierMapper.toResponse(entity);
     }
 
@@ -89,7 +89,7 @@ public class SupplierService {
     })
     public void delete(Long id) {
         Supplier entity = supplierRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy nhà cung cấp với ID: " + id));
+                .orElseThrow(() -> SupplierException.notFound(id));
         entity.delete();
         supplierRepository.save(entity);
     }
@@ -145,7 +145,7 @@ public class SupplierService {
     })
     public void updateContactInfo(Long supplierId, String contactInfo) {
         Supplier supplier = supplierRepository.findById(supplierId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy nhà cung cấp với ID: " + supplierId));
+                .orElseThrow(() -> SupplierException.notFound(supplierId));
         
         String oldContactInfo = supplier.getContactInfo();
         supplier.setContactInfo(contactInfo);

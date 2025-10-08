@@ -713,6 +713,7 @@ make docker-optimize
   - Cache eviction on create/update/delete operations
   - Configurable TTL and cache size via environment variables
 
+
 ### ✅ Day 18 — DDD Architecture & Service-Specific Commands 🏗️⚡️
 * **Goal:** Implement Domain-Driven Design architecture and optimize makefile with service-specific commands.
 * **Criteria:** Clean architecture with bounded contexts, optimized development workflows, efficient service management.
@@ -724,6 +725,21 @@ make docker-optimize
   - Service-specific makefile commands (75 optimized commands)
   - DDD development workflow commands
   - Legacy command aliases for backward compatibility
+
+### ✅ Day 19 — Error catalog & mã lỗi 🚨
+* **Mục tiêu:** Chuẩn hóa mã lỗi (APP-xxxx), mapping exception → mã.
+* **Tiêu chí:** Tài liệu trong README/Swagger.
+* **🎯 HOÀN THÀNH:** Standardized error codes (APP-XXXX) with comprehensive error handling, documentation, and testing
+* **📖 [README Day 19](docs/README_day19.md)**
+* **Features:**
+  - **Error Code System**: 100+ standardized error codes (APP-0001-0999) with categories
+  - **Exception Hierarchy**: AppException base class with domain-specific exceptions
+  - **Global Handler**: Enhanced GlobalExceptionHandler with automatic HTTP status mapping
+  - **Error Response**: Standardized ErrorResponse DTO with error codes, titles, and descriptions
+  - **Documentation**: Complete error codes documentation with examples and testing
+  - **Testing**: Comprehensive unit and integration tests for error scenarios
+  - **Business Logic**: Domain-specific exceptions for Product, Customer, Order, User
+  - **Validation**: Enhanced validation error handling with field-specific error codes
 
 ## ⚡ Service-Specific Commands
 
@@ -821,10 +837,6 @@ make health     # → status
 make sh-app     # → shell-backend
 make sh-db      # → shell-db
 ```
-  - 1.3-2x performance improvement on cached endpoints
-  - Comprehensive testing and monitoring
-
----
 
 ## 🏆 **Current Architecture Status**
 
@@ -847,6 +859,7 @@ make sh-db      # → shell-db
 - 🛫 **Database Migrations**: Flyway-based schema management with automated migrations (V1-V7)
 - 🌱 **Data Seeding**: Profile-based seeding with DataFaker, idempotent seeding, configurable quantities
 - 🔗 **Slug System**: Global slug support for Products and Customers with dual access patterns
+- 🚨 **Error Catalog**: Standardized error codes (APP-XXXX) with comprehensive error handling and documentation
 - 🗑️ **Soft Delete & Auditing**: Complete audit trail with automatic timestamp management and soft delete functionality
 - 🏗️ **Clean Architecture**: Project structure cleanup with organized packages and consistent naming
 - ⚡ **Build Optimization**: Speed-optimized Docker commands with incremental builds and smart caching

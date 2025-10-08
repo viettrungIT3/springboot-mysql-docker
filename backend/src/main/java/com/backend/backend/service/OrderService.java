@@ -8,7 +8,9 @@ import com.backend.backend.dto.order.OrderUpdateRequest;
 import com.backend.backend.entity.Order;
 import com.backend.backend.entity.OrderItem;
 import com.backend.backend.entity.Product;
-import com.backend.backend.exception.ResourceNotFoundException;
+import com.backend.backend.shared.domain.exception.OrderException;
+import com.backend.backend.shared.domain.exception.CustomerException;
+import com.backend.backend.shared.domain.exception.ProductException;
 import com.backend.backend.mapper.OrderMapper;
 import com.backend.backend.repository.CustomerRepository;
 import com.backend.backend.repository.OrderRepository;
@@ -72,8 +74,7 @@ public class OrderService {
             for (OrderCreateRequest.OrderItemCreateRequest itemRequest : request.getItems()) {
                 // Validate product
                 Product product = productRepository.findById(itemRequest.getProductId())
-                        .orElseThrow(() -> new ResourceNotFoundException(
-                                "Không tìm thấy sản phẩm với ID: " + itemRequest.getProductId()));
+                        .orElseThrow(() -> ProductException.notFound(itemRequest.getProductId()));
 
                 // Check stock
                 if (product.getQuantityInStock() < itemRequest.getQuantity()) {
@@ -116,13 +117,12 @@ public class OrderService {
     })
     public OrderResponse update(Long id, OrderUpdateRequest request) {
         Order entity = orderRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng với ID: " + id));
+                .orElseThrow(() -> OrderException.notFound(id));
 
         // Validate new customer if being changed
         if (request.getCustomerId() != null && !request.getCustomerId().equals(entity.getCustomer().getId())) {
             customerRepository.findById(request.getCustomerId())
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "Không tìm thấy khách hàng với ID: " + request.getCustomerId()));
+                    .orElseThrow(() -> CustomerException.notFound(request.getCustomerId()));
         }
 
         orderMapper.updateEntity(entity, request); // partial update
@@ -134,7 +134,7 @@ public class OrderService {
     @Cacheable(cacheNames = CacheNames.ORDER_BY_ID, key = "#id")
     public OrderResponse getById(Long id) {
         Order entity = orderRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng với ID: " + id));
+                .orElseThrow(() -> OrderException.notFound(id));
         return orderMapper.toResponse(entity);
     }
 
@@ -162,7 +162,7 @@ public class OrderService {
     @Cacheable(cacheNames = CacheNames.ORDER_BY_CUSTOMER, key = "#customerId")
     public List<OrderResponse> findByCustomerId(Long customerId) {
         if (!customerRepository.existsById(customerId)) {
-            throw new ResourceNotFoundException("Không tìm thấy khách hàng với ID: " + customerId);
+            throw CustomerException.notFound(customerId);
         }
 
         return orderRepository.findByCustomerId(customerId).stream()
@@ -178,7 +178,7 @@ public class OrderService {
     })
     public void delete(Long id) {
         Order entity = orderRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng với ID: " + id));
+                .orElseThrow(() -> OrderException.notFound(id));
 
         // Revert stock for all items
         for (OrderItem item : entity.getItems()) {
@@ -199,10 +199,10 @@ public class OrderService {
     })
     public OrderResponse addItem(Long orderId, Long productId, Integer quantity) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng với ID: " + orderId));
+                .orElseThrow(() -> OrderException.notFound(orderId));
 
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + productId));
+                .orElseThrow(() -> ProductException.notFound(productId));
 
         if (product.getQuantityInStock() < quantity) {
             throw new IllegalArgumentException("Không đủ hàng trong kho. Còn lại: " + product.getQuantityInStock());
@@ -250,7 +250,7 @@ public class OrderService {
     @Transactional(readOnly = true)
     public BigDecimal calculateOrderTotal(Long orderId) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng với ID: " + orderId));
+                .orElseThrow(() -> OrderException.notFound(orderId));
         
         return order.getItems().stream()
                 .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
@@ -263,7 +263,7 @@ public class OrderService {
     @Transactional(readOnly = true)
     public CustomerOrderStats getCustomerOrderStats(Long customerId) {
         if (!customerRepository.existsById(customerId)) {
-            throw new ResourceNotFoundException("Không tìm thấy khách hàng với ID: " + customerId);
+            throw CustomerException.notFound(customerId);
         }
         
         List<Order> orders = orderRepository.findByCustomerId(customerId);
@@ -348,12 +348,12 @@ public class OrderService {
     })
     public OrderResponse removeItem(Long orderId, Long productId) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng với ID: " + orderId));
+                .orElseThrow(() -> OrderException.notFound(orderId));
         
         OrderItem itemToRemove = order.getItems().stream()
                 .filter(item -> item.getProduct().getId().equals(productId))
                 .findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm trong đơn hàng"));
+                .orElseThrow(() -> OrderItemException.notFoundInOrder(orderId, productId));
         
         // Release stock
         Product product = itemToRemove.getProduct();
@@ -385,12 +385,12 @@ public class OrderService {
     })
     public OrderResponse updateItemQuantity(Long orderId, Long productId, Integer newQuantity) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng với ID: " + orderId));
+                .orElseThrow(() -> OrderException.notFound(orderId));
         
         OrderItem item = order.getItems().stream()
                 .filter(orderItem -> orderItem.getProduct().getId().equals(productId))
                 .findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm trong đơn hàng"));
+                .orElseThrow(() -> OrderItemException.notFoundInOrder(orderId, productId));
         
         Product product = item.getProduct();
         Integer oldQuantity = item.getQuantity();

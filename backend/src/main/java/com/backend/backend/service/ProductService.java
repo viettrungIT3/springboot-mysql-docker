@@ -6,7 +6,7 @@ import com.backend.backend.dto.product.ProductCreateRequest;
 import com.backend.backend.dto.product.ProductResponse;
 import com.backend.backend.dto.product.ProductUpdateRequest;
 import com.backend.backend.entity.Product;
-import com.backend.backend.exception.ResourceNotFoundException;
+import com.backend.backend.shared.domain.exception.ProductException;
 import com.backend.backend.mapper.ProductMapper;
 import com.backend.backend.repository.ProductRepository;
 import com.backend.backend.util.PageMapper;
@@ -53,7 +53,7 @@ public class ProductService {
     })
     public ProductResponse update(Long id, ProductUpdateRequest request) {
         Product entity = productRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + id));
+                .orElseThrow(() -> ProductException.notFound(id));
         productMapper.updateEntity(entity, request); // partial update
         
         // Update slug if name is being updated
@@ -69,7 +69,7 @@ public class ProductService {
     @Cacheable(cacheNames = CacheNames.PRODUCT_BY_ID, key = "#id")
     public ProductResponse getById(Long id) {
         Product entity = productRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + id));
+                .orElseThrow(() -> ProductException.notFound(id));
         return productMapper.toResponse(entity);
     }
 
@@ -77,7 +77,7 @@ public class ProductService {
     @Cacheable(cacheNames = CacheNames.PRODUCT_BY_SLUG, key = "#slug")
     public ProductResponse getBySlug(String slug) {
         Product entity = productRepository.findBySlug(slug)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với slug: " + slug));
+                .orElseThrow(() -> ProductException.notFound(slug));
         return productMapper.toResponse(entity);
     }
 
@@ -127,7 +127,7 @@ public class ProductService {
     })
     public void delete(Long id) {
         Product entity = productRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + id));
+                .orElseThrow(() -> ProductException.notFound(id));
         entity.delete();
         productRepository.save(entity);
     }
@@ -140,7 +140,7 @@ public class ProductService {
     @Transactional(readOnly = true)
     public boolean isInStock(Long productId) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + productId));
+                .orElseThrow(() -> ProductException.notFound(productId));
         return product.getQuantityInStock() > 0;
     }
     
@@ -150,7 +150,7 @@ public class ProductService {
     @Transactional(readOnly = true)
     public boolean hasSufficientStock(Long productId, Integer requiredQuantity) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + productId));
+                .orElseThrow(() -> ProductException.notFound(productId));
         return product.getQuantityInStock() >= requiredQuantity;
     }
     
@@ -165,11 +165,10 @@ public class ProductService {
     })
     public void reserveStock(Long productId, Integer quantity) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + productId));
+                .orElseThrow(() -> ProductException.notFound(productId));
         
         if (product.getQuantityInStock() < quantity) {
-            throw new IllegalArgumentException("Không đủ hàng trong kho cho sản phẩm: " + product.getName() +
-                    ". Còn lại: " + product.getQuantityInStock() + ", yêu cầu: " + quantity);
+            throw ProductException.insufficientStock(product.getName(), quantity, product.getQuantityInStock());
         }
         
         product.setQuantityInStock(product.getQuantityInStock() - quantity);
@@ -188,7 +187,7 @@ public class ProductService {
     })
     public void releaseStock(Long productId, Integer quantity) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + productId));
+                .orElseThrow(() -> ProductException.notFound(productId));
         
         product.setQuantityInStock(product.getQuantityInStock() + quantity);
         productRepository.save(product);
@@ -206,7 +205,7 @@ public class ProductService {
     })
     public void addStock(Long productId, Integer quantity) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + productId));
+                .orElseThrow(() -> ProductException.notFound(productId));
         
         product.setQuantityInStock(product.getQuantityInStock() + quantity);
         productRepository.save(product);
@@ -224,7 +223,7 @@ public class ProductService {
     })
     public void updatePrice(Long productId, BigDecimal newPrice) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + productId));
+                .orElseThrow(() -> ProductException.notFound(productId));
         
         BigDecimal oldPrice = product.getPrice();
         product.setPrice(newPrice);
