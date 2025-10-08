@@ -47,6 +47,19 @@ jobs:
         run: |
           make backend-quick-build
 
+      - name: Build slim backend image & generate SBOM
+        env:
+          BACKEND_PORT: 8080
+        run: |
+          make backend-slim-build
+          make backend-sbom
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-sbom
+          path: backend-sbom.spdx.json
+
       - name: Show images
         run: docker images | head -n 20
 

@@ -16,7 +16,7 @@ COPY src src
 RUN --mount=type=cache,target=/root/.gradle bash -lc 'for i in 1 2 3; do ./gradlew --no-daemon clean bootJar && break || (echo "Retry $i" && sleep 10); done'
 
 
-FROM eclipse-temurin:17-jre
+FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
 ENV JAVA_OPTS=""

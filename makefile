@@ -166,6 +166,12 @@ backend-quick-build: ## ⚡ Quick build backend (incremental, fast)
 	$(DC) build $(SERVICE_APP)
 	@echo "✅ Backend quick built successfully!"
 
+.PHONY: backend-slim-build
+backend-slim-build: ## 🪶 Build slim backend image (alpine JRE)
+	@echo "🪶 Building slim backend image (alpine JRE)..."
+	$(DC) build $(SERVICE_APP)
+	@echo "✅ Slim backend image built!"
+
 .PHONY: backend-force-rebuild
 backend-force-rebuild: ## 🔥 Force rebuild backend (clean + no-cache) - VERY SLOW
 	@echo "🔥 Force rebuilding backend (clean + no-cache) - This will take a long time..."
@@ -624,6 +630,13 @@ clean: ## 🧹 Clean up Docker resources
 	docker image prune -f || true
 	@echo "📊 Docker space usage:"
 	@docker system df
+
+.PHONY: backend-sbom
+backend-sbom: ## 📦 Generate SBOM for backend image with Syft
+	@echo "📦 Generating SBOM (Syft) for backend image..."
+	@docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+	  -v $(PWD):/work anchore/syft:latest packages docker:$(shell basename $(PWD))-backend:latest -o spdx-json=/work/backend-sbom.spdx.json
+	@echo "✅ SBOM generated at backend-sbom.spdx.json"
 
 .PHONY: backup-db
 backup-db: ## 💾 Backup database to file
