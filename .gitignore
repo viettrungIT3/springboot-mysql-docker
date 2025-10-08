@@ -11,3 +11,8 @@ backend/build/reports/tests/test/
 
 # Other files
 TODO.txt
+
+
+clients/*
+!clients/typescript-axios/**
+clients/typescript-axios/node_modules
