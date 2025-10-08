@@ -17,6 +17,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.web.multipart.MultipartFile;
 
 @Tag(name = "Products")
 @RestController
@@ -110,5 +113,23 @@ public class ProductController {
             @Parameter(description = "ID của sản phẩm", example = "1") @PathVariable Long id) {
         productService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Import products from CSV", description = "Tải lên file CSV để tạo/cập nhật sản phẩm (cột: name,description,price,quantityInStock)", responses = {
+            @ApiResponse(responseCode = "200", description = "Import thành công", content = @Content(schema = @Schema(implementation = ProductResponse.class)))
+    })
+    @PostMapping(value = "/import-csv", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<List<ProductResponse>> importCsv(@RequestPart("file") MultipartFile file) {
+        return ResponseEntity.ok(productService.importFromCsv(file));
+    }
+
+    @Operation(summary = "Export products to CSV", description = "Xuất danh sách sản phẩm dưới dạng CSV")
+    @GetMapping(value = "/export-csv", produces = "text/csv")
+    public ResponseEntity<byte[]> exportCsv() {
+        byte[] data = productService.exportToCsv();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=products.csv");
+        headers.set(HttpHeaders.CONTENT_TYPE, "text/csv");
+        return ResponseEntity.ok().headers(headers).body(data);
     }
 }
