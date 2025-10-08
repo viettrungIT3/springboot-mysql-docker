@@ -5,7 +5,7 @@ import com.backend.backend.dto.customer.CustomerCreateRequest;
 import com.backend.backend.dto.customer.CustomerResponse;
 import com.backend.backend.dto.customer.CustomerUpdateRequest;
 import com.backend.backend.entity.Customer;
-import com.backend.backend.shared.domain.exception.EntityNotFoundException;
+import com.backend.backend.shared.domain.exception.CustomerException;
 import com.backend.backend.mapper.CustomerMapper;
 import com.backend.backend.repository.CustomerRepository;
 import com.backend.backend.util.PageMapper;
@@ -52,7 +52,7 @@ public class CustomerService {
     })
     public CustomerResponse update(Long id, CustomerUpdateRequest request) {
         Customer entity = customerRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Customer", id));
+                .orElseThrow(() -> CustomerException.notFound(id));
         customerMapper.updateEntity(entity, request); // partial update
         
         // Update slug if name is being updated
@@ -68,7 +68,7 @@ public class CustomerService {
     @Cacheable(cacheNames = CacheNames.CUSTOMER_BY_ID, key = "#id")
     public CustomerResponse getById(Long id) {
         Customer entity = customerRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Customer", id));
+                .orElseThrow(() -> CustomerException.notFound(id));
         return customerMapper.toResponse(entity);
     }
 
@@ -76,7 +76,7 @@ public class CustomerService {
     @Cacheable(cacheNames = CacheNames.CUSTOMER_BY_SLUG, key = "#slug")
     public CustomerResponse getBySlug(String slug) {
         Customer entity = customerRepository.findBySlug(slug)
-                .orElseThrow(() -> new EntityNotFoundException("Customer", slug));
+                .orElseThrow(() -> CustomerException.notFound(slug));
         return customerMapper.toResponse(entity);
     }
 
@@ -126,7 +126,7 @@ public class CustomerService {
     })
     public void delete(Long id) {
         Customer entity = customerRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Customer", id));
+                .orElseThrow(() -> CustomerException.notFound(id));
         entity.delete();
         customerRepository.save(entity);
     }
@@ -180,7 +180,7 @@ public class CustomerService {
     })
     public void updateContactInfo(Long customerId, String contactInfo) {
         Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new EntityNotFoundException("Customer", customerId));
+                .orElseThrow(() -> CustomerException.notFound(customerId));
         
         String oldContactInfo = customer.getContactInfo();
         customer.setContactInfo(contactInfo);

@@ -6,7 +6,7 @@ import com.backend.backend.dto.user.UserUpdateRequest;
 import com.backend.backend.dto.common.PageResponse;
 import com.backend.backend.entity.User;
 import com.backend.backend.entity.Role;
-import com.backend.backend.exception.ResourceNotFoundException;
+import com.backend.backend.shared.domain.exception.UserException;
 import com.backend.backend.mapper.UserMapper;
 import com.backend.backend.repository.UserRepository;
 import com.backend.backend.util.PageMapper;
@@ -59,7 +59,7 @@ public class UserService {
     @Transactional
     public UserResponse update(Long id, UserUpdateRequest request) {
         User entity = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy quản trị viên với ID: " + id));
+                .orElseThrow(() -> UserException.notFound(id));
 
         // Check username uniqueness if being updated
         if (request.getUsername() != null && !request.getUsername().equals(entity.getUsername())) {
@@ -88,7 +88,7 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserResponse getById(Long id) {
         User entity = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy quản trị viên với ID: " + id));
+                .orElseThrow(() -> UserException.notFound(id));
         return userMapper.toResponse(entity);
     }
 
@@ -111,7 +111,7 @@ public class UserService {
     @Transactional
     public void delete(Long id) {
         User entity = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy quản trị viên với ID: " + id));
+                .orElseThrow(() -> UserException.notFound(id));
         entity.delete();
         userRepository.save(entity);
     }
@@ -156,7 +156,7 @@ public class UserService {
         log.info("Changing password for user ID: {}", userId);
         
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng với ID: " + userId));
+                .orElseThrow(() -> UserException.notFound(userId));
         
         // Verify current password
         if (!passwordService.verifyPassword(currentPassword, user.getPassword())) {
@@ -181,7 +181,7 @@ public class UserService {
         log.info("Resetting password for user ID: {}", userId);
         
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng với ID: " + userId));
+                .orElseThrow(() -> UserException.notFound(userId));
         
         // Generate new secure password
         String newPassword = passwordService.generateSecurePassword();
@@ -198,7 +198,7 @@ public class UserService {
         log.info("Activating user ID: {}", userId);
         
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng với ID: " + userId));
+                .orElseThrow(() -> UserException.notFound(userId));
         
         user.activate();
         User saved = userRepository.save(user);
@@ -212,7 +212,7 @@ public class UserService {
         log.info("Deactivating user ID: {}", userId);
         
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng với ID: " + userId));
+                .orElseThrow(() -> UserException.notFound(userId));
         
         user.deactivate();
         User saved = userRepository.save(user);
@@ -226,7 +226,7 @@ public class UserService {
         log.info("Changing role for user ID: {} to {}", userId, newRole);
         
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng với ID: " + userId));
+                .orElseThrow(() -> UserException.notFound(userId));
         
         user.setRole(newRole);
         User saved = userRepository.save(user);

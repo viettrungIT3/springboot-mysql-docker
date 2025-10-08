@@ -6,7 +6,9 @@ import com.backend.backend.dto.stockentry.StockEntryResponse;
 import com.backend.backend.dto.stockentry.StockEntryUpdateRequest;
 import com.backend.backend.entity.Product;
 import com.backend.backend.entity.StockEntry;
-import com.backend.backend.exception.ResourceNotFoundException;
+import com.backend.backend.shared.domain.exception.StockEntryException;
+import com.backend.backend.shared.domain.exception.ProductException;
+import com.backend.backend.shared.domain.exception.SupplierException;
 import com.backend.backend.mapper.StockEntryMapper;
 import com.backend.backend.repository.ProductRepository;
 import com.backend.backend.repository.StockEntryRepository;
@@ -36,13 +38,11 @@ public class StockEntryService {
     public StockEntryResponse create(StockEntryCreateRequest request) {
         // Validate product exists
         Product product = productRepository.findById(request.getProductId())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Không tìm thấy sản phẩm với ID: " + request.getProductId()));
+                .orElseThrow(() -> ProductException.notFound(request.getProductId()));
 
         // Validate supplier exists
         // Supplier supplier = supplierRepository.findById(request.getSupplierId())
-        // .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy nhà cung cấp
-        // với ID: " + request.getSupplierId()));
+        //         .orElseThrow(() -> SupplierException.notFound(request.getSupplierId()));
 
         StockEntry entity = stockEntryMapper.toEntity(request);
 
@@ -63,7 +63,7 @@ public class StockEntryService {
     @Transactional
     public StockEntryResponse update(Long id, StockEntryUpdateRequest request) {
         StockEntry entity = stockEntryRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiếu nhập kho với ID: " + id));
+                .orElseThrow(() -> StockEntryException.notFound(id));
 
         // Store old quantity for stock adjustment
         Integer oldQuantity = entity.getQuantity();
@@ -72,8 +72,7 @@ public class StockEntryService {
         // Validate new product if being changed
         if (request.getProductId() != null && !request.getProductId().equals(entity.getProduct().getId())) {
             Product newProduct = productRepository.findById(request.getProductId())
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "Không tìm thấy sản phẩm với ID: " + request.getProductId()));
+                    .orElseThrow(() -> ProductException.notFound(request.getProductId()));
 
             // Revert old product stock
             product.setQuantityInStock(product.getQuantityInStock() - oldQuantity);
@@ -85,8 +84,7 @@ public class StockEntryService {
         // Validate new supplier if being changed
         if (request.getSupplierId() != null && !request.getSupplierId().equals(entity.getSupplier().getId())) {
             supplierRepository.findById(request.getSupplierId())
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "Không tìm thấy nhà cung cấp với ID: " + request.getSupplierId()));
+                    .orElseThrow(() -> SupplierException.notFound(request.getSupplierId()));
         }
 
         stockEntryMapper.updateEntity(entity, request); // partial update
@@ -111,7 +109,7 @@ public class StockEntryService {
     @Transactional(readOnly = true)
     public StockEntryResponse getById(Long id) {
         StockEntry entity = stockEntryRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiếu nhập kho với ID: " + id));
+                .orElseThrow(() -> StockEntryException.notFound(id));
         return stockEntryMapper.toResponse(entity);
     }
 
@@ -134,7 +132,7 @@ public class StockEntryService {
     @Transactional
     public void delete(Long id) {
         StockEntry entity = stockEntryRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiếu nhập kho với ID: " + id));
+                .orElseThrow(() -> StockEntryException.notFound(id));
 
         // Revert product stock
         Product product = entity.getProduct();

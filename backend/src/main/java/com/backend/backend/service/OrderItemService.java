@@ -7,7 +7,9 @@ import com.backend.backend.dto.orderitem.OrderItemUpdateRequest;
 import com.backend.backend.entity.Order;
 import com.backend.backend.entity.OrderItem;
 import com.backend.backend.entity.Product;
-import com.backend.backend.exception.ResourceNotFoundException;
+import com.backend.backend.shared.domain.exception.OrderException;
+import com.backend.backend.shared.domain.exception.ProductException;
+import com.backend.backend.shared.domain.exception.OrderItemException;
 import com.backend.backend.mapper.OrderItemMapper;
 import com.backend.backend.repository.OrderItemRepository;
 import com.backend.backend.repository.OrderRepository;
@@ -42,13 +44,11 @@ public class OrderItemService {
     public OrderItemResponse create(OrderItemCreateRequest request) {
         // Validate order exists
         Order order = orderRepository.findById(request.getOrderId())
-                .orElseThrow(
-                        () -> new ResourceNotFoundException("Không tìm thấy đơn hàng với ID: " + request.getOrderId()));
+                .orElseThrow(() -> OrderException.notFound(request.getOrderId()));
 
         // Validate product exists
         Product product = productRepository.findById(request.getProductId())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Không tìm thấy sản phẩm với ID: " + request.getProductId()));
+                .orElseThrow(() -> ProductException.notFound(request.getProductId()));
 
         // Check stock availability
         if (product.getQuantityInStock() < request.getQuantity()) {
@@ -71,7 +71,7 @@ public class OrderItemService {
     @Transactional
     public OrderItemResponse update(Long id, OrderItemUpdateRequest request) {
         OrderItem entity = orderItemRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy mặt hàng trong đơn với ID: " + id));
+                .orElseThrow(() -> OrderItemException.notFound(id));
 
         Integer oldQuantity = entity.getQuantity();
         Product oldProduct = entity.getProduct();
@@ -80,16 +80,14 @@ public class OrderItemService {
         Order order = entity.getOrder();
         if (request.getOrderId() != null && !request.getOrderId().equals(entity.getOrder().getId())) {
             order = orderRepository.findById(request.getOrderId())
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "Không tìm thấy đơn hàng với ID: " + request.getOrderId()));
+                    .orElseThrow(() -> OrderException.notFound(request.getOrderId()));
         }
 
         // Validate new product if being changed
         Product product = oldProduct;
         if (request.getProductId() != null && !request.getProductId().equals(entity.getProduct().getId())) {
             product = productRepository.findById(request.getProductId())
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "Không tìm thấy sản phẩm với ID: " + request.getProductId()));
+                    .orElseThrow(() -> ProductException.notFound(request.getProductId()));
         }
 
         orderItemMapper.updateEntity(entity, request); // partial update
@@ -130,7 +128,7 @@ public class OrderItemService {
     @Transactional(readOnly = true)
     public OrderItemResponse getById(Long id) {
         OrderItem entity = orderItemRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy mặt hàng trong đơn với ID: " + id));
+                .orElseThrow(() -> OrderItemException.notFound(id));
         return orderItemMapper.toResponse(entity);
     }
 
@@ -153,7 +151,7 @@ public class OrderItemService {
     @Transactional
     public void delete(Long id) {
         OrderItem entity = orderItemRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy mặt hàng trong đơn với ID: " + id));
+                .orElseThrow(() -> OrderItemException.notFound(id));
 
         // Revert product stock
         Product product = entity.getProduct();
