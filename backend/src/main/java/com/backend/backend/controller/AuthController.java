@@ -46,7 +46,12 @@ public class AuthController {
         );
 
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        String token = jwtUtil.generateToken(userDetails);
+        // Generate token with domain user info (includes userId) so downstream profile can resolve user
+        Optional<User> userOpt = userService.findByUsername(userDetails.getUsername());
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(401).body(Map.of("error", "Không tìm thấy người dùng"));
+        }
+        String token = jwtTokenService.generateToken(userOpt.get());
 
         return ResponseEntity.ok(Map.of(
                 "token", token,
