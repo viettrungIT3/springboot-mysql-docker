@@ -77,7 +77,8 @@ public class JwtTokenService {
 
     public Long getUserIdFromToken(String token) {
         Claims claims = getClaimsFromToken(token);
-        return claims.get("userId", Long.class);
+        Number userIdNumber = claims.get("userId", Number.class);
+        return userIdNumber != null ? userIdNumber.longValue() : null;
     }
 
     public String getRoleFromToken(String token) {
@@ -88,7 +89,12 @@ public class JwtTokenService {
     public Optional<User> getUserFromToken(String token) {
         try {
             Long userId = getUserIdFromToken(token);
-            return userRepository.findById(userId);
+            if (userId != null) {
+                return userRepository.findById(userId);
+            }
+            // Fallback: try by username in subject for older tokens
+            String username = getUsernameFromToken(token);
+            return userRepository.findByUsername(username);
         } catch (Exception e) {
             log.warn("Error extracting user from token: {}", e.getMessage());
             return Optional.empty();
