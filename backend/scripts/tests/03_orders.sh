@@ -25,9 +25,10 @@ if [ -z "$ORDER_ID" ]; then
   ORDER_ID=1
 fi
 
-echo "[ORDERS] Confirm order $ORDER_ID"
+echo "[ORDERS] Confirm order $ORDER_ID (with Idempotency-Key)"
 curl -s -X POST "$BASE/api/v1/orders/$ORDER_ID/confirm" \
-  -H "Authorization: Bearer $TOKEN" | sed 's/.*/[ORDERS] Confirm: &/'
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Idempotency-Key: confirm-$(date +%s)" | sed 's/.*/[ORDERS] Confirm: &/'
 
 exit 0
 
