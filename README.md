@@ -610,6 +610,13 @@ make docker-optimize
 
 -----
 
+## 📚 Documentation Index
+
+### **Detailed Day-by-Day Guides:**
+- **[Days 1-19](docs/README_day1.md)** — Foundation & Core Features
+- **[Days 20-30](docs/README_days_20_30.md)** — Advanced Features & Production Readiness
+- **[Individual Day Guides](docs/)** — Complete implementation details for each day
+
 ## 🗓️ Development Journey
 
 ### ✅ Day 1 — Makefile & Dev UX
@@ -765,37 +772,70 @@ make docker-optimize
   - **Validation**: Enhanced validation error handling with field-specific error codes
 
 ### ✅ Day 20 — API Versioning & Deprecation
-* Added filter to forward legacy `/api/**` → `/api/v1/**` with deprecation headers.
+* **Goal:** Add filter to forward legacy `/api/**` → `/api/v1/**` with deprecation headers.
+* **Criteria:** Legacy paths work with deprecation warnings; clear migration path.
+* **🎯 COMPLETED:** API versioning with deprecation headers and seamless backward compatibility
+* **📖 [README Day 20](docs/README_day20.md)**
 
 ### ✅ Day 21 — Actuator & Build Info
-* Enabled actuator endpoints (health, info, metrics) and build info generation.
+* **Goal:** Enable actuator endpoints (health, info, metrics) and build info generation.
+* **Criteria:** Monitoring endpoints accessible; build info available.
+* **🎯 COMPLETED:** Complete monitoring setup with actuator endpoints and build information
+* **📖 [README Day 21](docs/README_day21.md)**
 
 ### ✅ Day 22 — Micrometer + Prometheus
-* Exposed `/actuator/prometheus`, optional `docker-compose.observability.yml`, and Prometheus config.
+* **Goal:** Expose `/actuator/prometheus`, optional observability stack with Prometheus & Grafana.
+* **Criteria:** Metrics exposed; optional monitoring stack available.
+* **🎯 COMPLETED:** Full observability stack with Prometheus metrics and Grafana dashboards
+* **📖 [README Day 22](docs/README_day22.md)**
 
 ### ✅ Day 23 — CSV Import/Export (Products)
-* Endpoints: `POST /api/v1/products/import-csv`, `GET /api/v1/products/export-csv`.
+* **Goal:** Add CSV import/export functionality for bulk product operations.
+* **Criteria:** Import/export endpoints work; handle large datasets efficiently.
+* **🎯 COMPLETED:** Complete CSV import/export with Apache Commons CSV and makefile integration
+* **📖 [README Day 23](docs/README_day23.md)**
 
 ### ✅ Day 24 — Idempotency & Optimistic Locking
-* Enforce `Idempotency-Key` header for `POST /api/v1/orders`; add `@Version` to `Order`.
+* **Goal:** Enforce `Idempotency-Key` header for `POST /api/v1/orders`; add `@Version` to `Order`.
+* **Criteria:** Prevent duplicate orders; handle concurrent updates.
+* **🎯 COMPLETED:** Idempotency protection and optimistic locking for data consistency
+* **📖 [README Day 24](docs/README_day24.md)**
 
 ### ✅ Day 25 — Order Confirmation Business Rules
-* `POST /api/v1/orders/{id}/confirm`: recalc `totalAmount` and write `StockEntry` outflow.
+* **Goal:** `POST /api/v1/orders/{id}/confirm`: recalc `totalAmount` and write `StockEntry` outflow.
+* **Criteria:** Business rules enforced; stock movements recorded.
+* **🎯 COMPLETED:** Complete order confirmation with business rules and inventory management
+* **📖 [README Day 25](docs/README_day25.md)**
 
 ### ✅ Day 26 — OpenAPI Client Generation
-* Dockerized `client-gen` and `client-test`; commit sample client at `clients/typescript-axios`.
+* **Goal:** Dockerized `client-gen` and `client-test`; commit sample client at `clients/typescript-axios`.
+* **Criteria:** Generated client works; Docker-based workflow.
+* **🎯 COMPLETED:** TypeScript API client generation with Docker-based workflow and testing
+* **📖 [README Day 26](docs/README_day26.md)**
 
 ### ✅ Day 27 — CI Workflow
-* GitHub Actions: Gradle tests, Docker build, SBOM upload.
+* **Goal:** GitHub Actions: Gradle tests, Docker build, SBOM upload.
+* **Criteria:** Automated CI pipeline; artifacts uploaded.
+* **🎯 COMPLETED:** Complete CI/CD pipeline with automated testing, building, and artifact management
+* **📖 [README Day 27](docs/README_day27.md)**
 
 ### ✅ Day 28 — Slim Image + SBOM
-* Alpine JRE base image and Syft SBOM generation.
+* **Goal:** Alpine JRE base image and Syft SBOM generation.
+* **Criteria:** Smaller image size; SBOM generated.
+* **🎯 COMPLETED:** Optimized Docker image with Alpine JRE and comprehensive SBOM generation
+* **📖 [README Day 28](docs/README_day28.md)**
 
 ### ✅ Day 29 — Security Scans
-* Trivy image scan (HIGH/CRITICAL) and OWASP Dependency Check with artifact upload.
+* **Goal:** Trivy image scan (HIGH/CRITICAL) and OWASP Dependency Check with artifact upload.
+* **Criteria:** Security vulnerabilities detected; reports generated.
+* **🎯 COMPLETED:** Comprehensive security scanning with Trivy and OWASP Dependency Check
+* **📖 [README Day 29](docs/README_day29.md)**
 
 ### ✅ Day 30 — Demo Collections
-* Postman/Insomnia collections and E2E demo guide in `docs/`.
+* **Goal:** Postman/Insomnia collections and E2E demo guide in `docs/`.
+* **Criteria:** Complete API collections; demo guide available.
+* **🎯 COMPLETED:** Professional API collections and comprehensive demo documentation
+* **📖 [README Day 30](docs/README_day30.md)**
 
 
 ## ⚡ Service-Specific Commands

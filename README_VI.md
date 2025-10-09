@@ -600,6 +600,13 @@ make docker-optimize
 
 -----
 
+## 📚 Mục lục Tài liệu
+
+### **Hướng dẫn Chi tiết Theo Ngày:**
+- **[Ngày 1-19](docs/README_day1.md)** — Nền tảng & Tính năng Cốt lõi
+- **[Ngày 20-30](docs/README_days_20_30.md)** — Tính năng Nâng cao & Sẵn sàng Production
+- **[Hướng dẫn Từng Ngày](docs/)** — Chi tiết implementation đầy đủ cho mỗi ngày
+
 ## 🗓️ Hành trình Phát triển
 
 ### ✅ Day 1 — Makefile & Dev UX
@@ -725,44 +732,10 @@ make docker-optimize
   - Testing và monitoring toàn diện
 
 ### ✅ Day 18 — DDD Architecture & Service-Specific Commands 🏗️⚡️
-### ✅ Day 19 — Error catalog & mã lỗi 🚨
-* Chuẩn hoá mã lỗi (APP-xxxx), phân cấp exception, tài liệu và tests.
-
-### ✅ Day 20 — API Versioning & Deprecation
-* Thêm filter forward `/api/**` → `/api/v1/**` kèm deprecation headers.
-
-### ✅ Day 21 — Actuator & Build Info
-* Bật actuator (health, info, metrics) và sinh build-info.
-
-### ✅ Day 22 — Micrometer + Prometheus
-* Expose `/actuator/prometheus`, thêm compose observability và cấu hình Prometheus.
-
-### ✅ Day 23 — CSV Import/Export (Products)
-* Endpoints: `POST /api/v1/products/import-csv`, `GET /api/v1/products/export-csv`.
-
-### ✅ Day 24 — Idempotency & Optimistic Locking
-* Bắt buộc `Idempotency-Key` cho `POST /api/v1/orders`; thêm `@Version` vào `Order`.
-
-### ✅ Day 25 — Business Rules Xác nhận Đơn
-* `POST /api/v1/orders/{id}/confirm`: tính lại `totalAmount`, ghi `StockEntry` xuất kho.
-
-### ✅ Day 26 — OpenAPI Client Generation
-* Docker hoá `client-gen` và `client-test`; commit sample client `clients/typescript-axios`.
-
-### ✅ Day 27 — CI Workflow
-* GitHub Actions: Gradle tests, Docker build, SBOM upload.
-
-### ✅ Day 28 — Slim Image + SBOM
-* Chuyển sang Alpine JRE và tạo SBOM với Syft.
-
-### ✅ Day 29 — Security Scans
-* Trivy (HIGH/CRITICAL) và OWASP Dependency Check, upload artifact báo cáo.
-
-### ✅ Day 30 — Demo Collections
-* Postman/Insomnia collections + hướng dẫn E2E trong `docs/`.
 * **Mục tiêu:** Implement Domain-Driven Design architecture và tối ưu hóa makefile với service-specific commands.
 * **Tiêu chí:** Clean architecture với bounded contexts, optimized development workflows, efficient service management.
 * **🎯 HOÀN THÀNH:** Complete DDD foundation setup với optimized makefile cho development hiệu quả
+* **📖 [README Day 18](docs/README_day18.md)**
 * **Tính năng:**
   - Domain-Driven Design architecture với bounded contexts
   - Shared kernel với value objects (Money, Slug, Email)
@@ -770,6 +743,87 @@ make docker-optimize
   - Service-specific makefile commands (75 optimized commands)
   - DDD development workflow commands
   - Legacy command aliases cho backward compatibility
+
+### ✅ Day 19 — Error catalog & mã lỗi 🚨
+* **Mục tiêu:** Chuẩn hóa mã lỗi (APP-xxxx), mapping exception → mã.
+* **Tiêu chí:** Tài liệu trong README/Swagger.
+* **🎯 HOÀN THÀNH:** Standardized error codes (APP-XXXX) with comprehensive error handling, documentation, and testing
+* **📖 [README Day 19](docs/README_day19.md)**
+* **Tính năng:**
+  - **Error Code System**: 100+ standardized error codes (APP-0001-0999) with categories
+  - **Exception Hierarchy**: AppException base class with domain-specific exceptions
+  - **Global Handler**: Enhanced GlobalExceptionHandler with automatic HTTP status mapping
+  - **Error Response**: Standardized ErrorResponse DTO with error codes, titles, and descriptions
+  - **Documentation**: Complete error codes documentation with examples and testing
+  - **Testing**: Comprehensive unit and integration tests for error scenarios
+  - **Business Logic**: Domain-specific exceptions for Product, Customer, Order, User
+  - **Validation**: Enhanced validation error handling with field-specific error codes
+
+### ✅ Day 20 — API Versioning & Deprecation
+* **Mục tiêu:** Thêm filter forward `/api/**` → `/api/v1/**` kèm deprecation headers.
+* **Tiêu chí:** Legacy paths hoạt động với deprecation warnings; migration path rõ ràng.
+* **🎯 HOÀN THÀNH:** API versioning với deprecation headers và backward compatibility hoàn hảo
+* **📖 [README Day 20](docs/README_day20.md)**
+
+### ✅ Day 21 — Actuator & Build Info
+* **Mục tiêu:** Bật actuator endpoints (health, info, metrics) và sinh build-info.
+* **Tiêu chí:** Monitoring endpoints accessible; build info available.
+* **🎯 HOÀN THÀNH:** Complete monitoring setup với actuator endpoints và build information
+* **📖 [README Day 21](docs/README_day21.md)**
+
+### ✅ Day 22 — Micrometer + Prometheus
+* **Mục tiêu:** Expose `/actuator/prometheus`, optional observability stack với Prometheus & Grafana.
+* **Tiêu chí:** Metrics exposed; optional monitoring stack available.
+* **🎯 HOÀN THÀNH:** Full observability stack với Prometheus metrics và Grafana dashboards
+* **📖 [README Day 22](docs/README_day22.md)**
+
+### ✅ Day 23 — CSV Import/Export (Products)
+* **Mục tiêu:** Thêm CSV import/export functionality cho bulk product operations.
+* **Tiêu chí:** Import/export endpoints hoạt động; handle large datasets efficiently.
+* **🎯 HOÀN THÀNH:** Complete CSV import/export với Apache Commons CSV và makefile integration
+* **📖 [README Day 23](docs/README_day23.md)**
+
+### ✅ Day 24 — Idempotency & Optimistic Locking
+* **Mục tiêu:** Bắt buộc `Idempotency-Key` header cho `POST /api/v1/orders`; thêm `@Version` vào `Order`.
+* **Tiêu chí:** Prevent duplicate orders; handle concurrent updates.
+* **🎯 HOÀN THÀNH:** Idempotency protection và optimistic locking cho data consistency
+* **📖 [README Day 24](docs/README_day24.md)**
+
+### ✅ Day 25 — Business Rules Xác nhận Đơn
+* **Mục tiêu:** `POST /api/v1/orders/{id}/confirm`: tính lại `totalAmount`, ghi `StockEntry` outflow.
+* **Tiêu chí:** Business rules enforced; stock movements recorded.
+* **🎯 HOÀN THÀNH:** Complete order confirmation với business rules và inventory management
+* **📖 [README Day 25](docs/README_day25.md)**
+
+### ✅ Day 26 — OpenAPI Client Generation
+* **Mục tiêu:** Docker hoá `client-gen` và `client-test`; commit sample client `clients/typescript-axios`.
+* **Tiêu chí:** Generated client hoạt động; Docker-based workflow.
+* **🎯 HOÀN THÀNH:** TypeScript API client generation với Docker-based workflow và testing
+* **📖 [README Day 26](docs/README_day26.md)**
+
+### ✅ Day 27 — CI Workflow
+* **Mục tiêu:** GitHub Actions: Gradle tests, Docker build, SBOM upload.
+* **Tiêu chí:** Automated CI pipeline; artifacts uploaded.
+* **🎯 HOÀN THÀNH:** Complete CI/CD pipeline với automated testing, building, và artifact management
+* **📖 [README Day 27](docs/README_day27.md)**
+
+### ✅ Day 28 — Slim Image + SBOM
+* **Mục tiêu:** Alpine JRE base image và Syft SBOM generation.
+* **Tiêu chí:** Smaller image size; SBOM generated.
+* **🎯 HOÀN THÀNH:** Optimized Docker image với Alpine JRE và comprehensive SBOM generation
+* **📖 [README Day 28](docs/README_day28.md)**
+
+### ✅ Day 29 — Security Scans
+* **Mục tiêu:** Trivy image scan (HIGH/CRITICAL) và OWASP Dependency Check với artifact upload.
+* **Tiêu chí:** Security vulnerabilities detected; reports generated.
+* **🎯 HOÀN THÀNH:** Comprehensive security scanning với Trivy và OWASP Dependency Check
+* **📖 [README Day 29](docs/README_day29.md)**
+
+### ✅ Day 30 — Demo Collections
+* **Mục tiêu:** Postman/Insomnia collections và E2E demo guide trong `docs/`.
+* **Tiêu chí:** Complete API collections; demo guide available.
+* **🎯 HOÀN THÀNH:** Professional API collections và comprehensive demo documentation
+* **📖 [README Day 30](docs/README_day30.md)**
 
 ## ⚡ Service-Specific Commands
 
