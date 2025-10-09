@@ -12,7 +12,7 @@ fi
 TOKEN=$(cat "$TOKEN_FILE")
 
 echo "[CUSTOMERS] List page"
-curl -s -H "Authorization: Bearer $TOKEN" "$BASE/api/v1/customers/page?page=0&size=5" | sed 's/.*/[CUSTOMERS] Page: &/' || true
+curl -s -H "Authorization: Bearer $TOKEN" "$BASE/api/v1/customers?page=0&size=5&sort=id,desc" | sed 's/.*/[CUSTOMERS] Page: &/' || true
 
 echo "[SUPPLIERS] List page"
 curl -s -H "Authorization: Bearer $TOKEN" "$BASE/api/v1/suppliers/page?page=0&size=5" | sed 's/.*/[SUPPLIERS] Page: &/' || true

@@ -132,4 +132,10 @@ public class ProductController {
         headers.set(HttpHeaders.CONTENT_TYPE, "text/csv");
         return ResponseEntity.ok().headers(headers).body(data);
     }
+
+    @Operation(summary = "Product statistics", description = "Thống kê tổng quan sản phẩm")
+    @GetMapping("/stats")
+    public ResponseEntity<ProductService.ProductStats> stats() {
+        return ResponseEntity.ok(productService.getProductStats());
+    }
 }
