@@ -11,8 +11,10 @@ backend/build/reports/tests/test/
 
 # Other files
 TODO.txt
+docs/collections
 
 
 clients/*
 !clients/typescript-axios/**
 clients/typescript-axios/node_modules
+backend/scripts/tests/.token
