@@ -652,6 +652,31 @@ security-scan-dep: ## 🛡️ OWASP Dependency Check (Docker), HTML report at ./
 	  --scan /src --format HTML --out /report --failOnCVSS 7.0
 	@echo "✅ Dependency Check passed; report in odc-report/index.html"
 
+# ==== POSTMAN COLLECTION (OpenAPI parity) ====
+
+.PHONY: postman-gen
+postman-gen: ## 📬 Generate Postman collection from OpenAPI (Docker)
+	@echo "📬 Generating Postman collection from OpenAPI..."
+	@mkdir -p docs/collections
+	@echo "⏳ Ensuring backend is running to fetch spec..."
+	$(MAKE) backend-start
+	@sleep 8
+	@curl -sSf http://localhost:$(BACKEND_PORT)/v3/api-docs -o docs/collections/openapi.json
+	@echo "✅ OpenAPI saved to docs/collections/openapi.json"
+	docker run --rm -v "$(PWD)/docs/collections:/local" openapitools/openapi-generator-cli:v7.7.0 generate \
+		-i /local/openapi.json \
+		-g postman-collection \
+		-o /local/postman \
+		--additional-properties=postmanCollectionVersion=2.1.0
+	@find docs/collections/postman -name "*.json" -maxdepth 1 -print -quit | xargs -I{} cp {} docs/collections/postman_full_generated.json
+	@echo "✅ Postman collection generated at docs/collections/postman_full_generated.json"
+
+.PHONY: postman-env
+postman-env: ## ⚙️ Generate Postman environment file (local)
+	@mkdir -p docs/collections
+	@printf '{\n  "name": "SpringBoot Local",\n  "values": [\n    {"key":"baseUrl","value":"http://localhost:%s","enabled":true},\n    {"key":"token","value":"","enabled":true},\n    {"key":"orderId","value":"1","enabled":true},\n    {"key":"csvFile","value":"products.csv","enabled":true}\n  ]\n}\n' "$(BACKEND_PORT)" > docs/collections/postman_env_local.json
+	@echo "✅ Postman environment generated at docs/collections/postman_env_local.json"
+
 .PHONY: backup-db
 backup-db: ## 💾 Backup database to file
 	@echo "💾 Creating database backup..."
